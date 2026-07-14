@@ -1,0 +1,22 @@
+{
+  "name": "harold",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Harold — automated pipeline that turns Good News Network articles into Instagram-ready cards and posts them.",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node src/run.js",
+    "dry-run": "node src/run.js --dry-run",
+    "acceptance": "node scripts/acceptance.js"
+  },
+  "dependencies": {
+    "playwright": "^1.61.1",
+    "rss-parser": "^3.13.0"
+  },
+  "optionalDependencies": {
+    "@anthropic-ai/sdk": "^0.30.1"
+  }
+}
