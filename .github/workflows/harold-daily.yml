@@ -82,9 +82,10 @@ jobs:
           # Manual runs use the dispatch input. Scheduled runs go live only when
           # the repo variable HAROLD_LIVE is exactly 'true' (Settings → Secrets
           # and variables → Actions → Variables) — dry-run otherwise.
+          LIVE_FLAG="$(echo "${{ vars.HAROLD_LIVE }}" | tr '[:upper:]' '[:lower:]')"
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             MODE="${{ inputs.mode }}"
-          elif [ "${{ vars.HAROLD_LIVE }}" = "true" ]; then
+          elif [ "$LIVE_FLAG" = "true" ]; then
             MODE="live"
           else
             MODE="dry-run"
