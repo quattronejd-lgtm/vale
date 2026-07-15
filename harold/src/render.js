@@ -103,6 +103,7 @@ function fitHeadlineInPage() {
   const el = document.getElementById("headline");
   const box = document.getElementById("headline-wrap");
   const lineHeight = 0.92; // must match .headline line-height in card.css
+  const STRETCH = 1.3; // must match .headline scaleY in card.css
   const MAX = 172;
   const MIN = 40;
   const maxHeight = box.clientHeight; // capped by max-height in CSS
@@ -111,7 +112,8 @@ function fitHeadlineInPage() {
   for (; size > MIN; size -= 1) {
     el.style.fontSize = size + "px";
     const overflowW = el.scrollWidth > box.clientWidth + 1;
-    const overflowH = el.scrollHeight > maxHeight + 1;
+    // scaleY doesn't affect layout; account for the visual stretch here
+    const overflowH = el.scrollHeight * STRETCH > maxHeight + 1;
     const lines = Math.round(el.scrollHeight / (size * lineHeight));
     if (!overflowW && !overflowH && lines <= 5) break;
   }
