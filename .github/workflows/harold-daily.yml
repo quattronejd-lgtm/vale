@@ -1,0 +1,121 @@
+name: Harold daily post
+
+on:
+  schedule:
+    # 9:00am America/Chicago year-round. GitHub cron is UTC-only, so fire at
+    # both candidate hours (14:00 UTC = 9am CDT, 15:00 UTC = 9am CST) and let
+    # the timezone guard step run exactly one of them.
+    - cron: "0 14 * * *"
+    - cron: "0 15 * * *"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "Run mode"
+        type: choice
+        options:
+          - dry-run
+          - live
+        default: dry-run
+
+concurrency:
+  group: harold-daily
+  cancel-in-progress: false
+
+permissions:
+  contents: write # to commit the posted.json ledger back after a live post
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: harold
+    env:
+      # Public config (not secrets)
+      NETLIFY_SITE_ID: 1536eb41-70ea-4b6b-aa6f-54f404810ba9
+      PUBLIC_IMAGE_BASE: https://harold-cards.netlify.app
+      # Secrets — set in repo Settings → Secrets and variables → Actions → Secrets
+      IG_USER_ID: ${{ secrets.IG_USER_ID }}
+      IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
+      NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+    steps:
+      - name: Timezone guard (only run the 9am America/Chicago firing)
+        id: guard
+        working-directory: .
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+            echo "Manual dispatch — running."
+          elif [ "$(TZ=America/Chicago date +%H)" = "09" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+            echo "It is 9am in Chicago — running."
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "Not 9am in Chicago (DST twin firing) — skipping."
+          fi
+
+      - uses: actions/checkout@v4
+        if: steps.guard.outputs.run == 'true'
+
+      - uses: actions/setup-node@v4
+        if: steps.guard.outputs.run == 'true'
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: harold/package-lock.json
+
+      - name: Install dependencies
+        if: steps.guard.outputs.run == 'true'
+        run: npm ci
+
+      - name: Install Chromium
+        if: steps.guard.outputs.run == 'true'
+        run: npx playwright install --with-deps chromium
+
+      - name: Decide mode
+        if: steps.guard.outputs.run == 'true'
+        id: mode
+        run: |
+          # Manual runs use the dispatch input. Scheduled runs go live only when
+          # the repo variable HAROLD_LIVE is exactly 'true' (Settings → Secrets
+          # and variables → Actions → Variables) — dry-run otherwise.
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            MODE="${{ inputs.mode }}"
+          elif [ "${{ vars.HAROLD_LIVE }}" = "true" ]; then
+            MODE="live"
+          else
+            MODE="dry-run"
+          fi
+          echo "mode=$MODE" >> "$GITHUB_OUTPUT"
+          echo "Mode: $MODE"
+
+      - name: Run Harold (${{ steps.mode.outputs.mode }})
+        if: steps.guard.outputs.run == 'true'
+        run: |
+          if [ "${{ steps.mode.outputs.mode }}" = "live" ]; then
+            node src/run.js --live
+          else
+            node src/run.js --dry-run
+          fi
+
+      - name: Upload rendered card
+        if: steps.guard.outputs.run == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: card-${{ github.run_id }}
+          path: harold/out/card.jpg
+          retention-days: 30
+
+      - name: Commit ledger (live runs only)
+        if: steps.guard.outputs.run == 'true' && steps.mode.outputs.mode == 'live'
+        run: |
+          if git diff --quiet -- data/posted.json; then
+            echo "Ledger unchanged — nothing to commit."
+            exit 0
+          fi
+          git config user.name "harold-bot"
+          git config user.email "harold-bot@users.noreply.github.com"
+          git add data/posted.json
+          git commit -m "Harold: ledger update after live post [skip ci]"
+          git push
