@@ -156,11 +156,12 @@ default `graph.facebook.com` base.
 
 ## Scheduling
 
-**Primary: GitHub Actions** (`.github/workflows/harold-daily.yml`). Runs daily at **9:00am
-Central** in GitHub's cloud — no always-on machine needed. Details:
+**Primary: GitHub Actions** (`.github/workflows/harold-daily.yml`). Posts **four times daily —
+9am, 12pm, 3pm, 6pm Central** — in GitHub's cloud, no always-on machine needed. Each run posts
+the single newest unposted story, so the four slots work through the day's articles. Details:
 
-- **DST-proof**: fires at both 14:00 and 15:00 UTC; a timezone guard runs exactly the one that
-  is 9am in Chicago.
+- **DST-proof**: fires at both CDT and CST UTC candidates for each slot; a timezone guard runs
+  exactly the right ones.
 - **Dry-run by default.** Scheduled runs only go live when the repo *variable* `HAROLD_LIVE`
   is set to `true` (Settings → Secrets and variables → Actions → **Variables**). Delete or
   change it to fall back to dry-run.

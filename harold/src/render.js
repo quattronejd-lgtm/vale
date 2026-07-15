@@ -97,13 +97,13 @@ async function toDataURI(ref) {
 }
 
 // The auto-fit routine, injected into the page. Scales #headline down from a
-// large size until it fits the safe box (no width/height overflow, ≤ 4 lines),
-// so 1–4 lines always fill without spilling.
+// large size until it fits the safe box (no width/height overflow, ≤ 5 lines),
+// so 1–5 lines always fill without spilling.
 function fitHeadlineInPage() {
   const el = document.getElementById("headline");
   const box = document.getElementById("headline-wrap");
   const lineHeight = 0.92; // must match .headline line-height in card.css
-  const MAX = 152;
+  const MAX = 172;
   const MIN = 40;
   const maxHeight = box.clientHeight; // capped by max-height in CSS
 
@@ -113,7 +113,7 @@ function fitHeadlineInPage() {
     const overflowW = el.scrollWidth > box.clientWidth + 1;
     const overflowH = el.scrollHeight > maxHeight + 1;
     const lines = Math.round(el.scrollHeight / (size * lineHeight));
-    if (!overflowW && !overflowH && lines <= 4) break;
+    if (!overflowW && !overflowH && lines <= 5) break;
   }
   el.style.fontSize = size + "px";
   return size;
@@ -174,7 +174,7 @@ export async function render({
         .getPropertyValue("--headline-font")
         .split(",")[0]
         .trim();
-      await document.fonts.load(`152px ${face}`);
+      await document.fonts.load(`172px ${face}`);
     });
 
     const fontSize = await page.evaluate(fitHeadlineInPage);

@@ -101,10 +101,14 @@ async function igUserId() {
   return cachedIgUserId;
 }
 
-/** Remote filename: dated so every post gets a fresh URL. */
+/**
+ * Remote filename: unique per RUN (date + time), never reused. Meta caches
+ * by URL, so with multiple posts per day a date-only name would make later
+ * posts serve an earlier post's cached image.
+ */
 export function remoteKey(date = new Date()) {
-  const d = date.toISOString().slice(0, 10);
-  return `card-${d}.jpg`;
+  const stamp = date.toISOString().replace(/[:.]/g, "-").slice(0, 19);
+  return `card-${stamp}.jpg`;
 }
 
 /** Public URL for a key under PUBLIC_IMAGE_BASE (the Harold site's URL). */

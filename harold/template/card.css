@@ -43,9 +43,9 @@
   --card-h: 1350px;
 
   /* Headline safe box insets */
-  --safe-left: 56px;
-  --safe-right: 56px;
-  --safe-bottom: 84px;
+  --safe-left: 44px;
+  --safe-right: 44px;
+  --safe-bottom: 72px;
 }
 
 * {
@@ -99,11 +99,11 @@ html, body {
 /* ---- GNN flower logo: white seed-of-life cluster in a ring, centered up top ---- */
 .badge {
   position: absolute;
-  top: 32px;
+  top: 30px;
   left: 50%;
   transform: translateX(-50%);
-  width: 148px;
-  height: 148px;
+  width: 112px;
+  height: 112px;
   /* subtle shadow so the white logo stays legible over bright photos */
   filter: drop-shadow(0 2px 12px rgba(0, 0, 0, 0.5));
 }
