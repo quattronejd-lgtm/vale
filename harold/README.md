@@ -1,5 +1,7 @@
 # Harold
 
+[![Netlify Status](https://api.netlify.com/api/v1/badges/1536eb41-70ea-4b6b-aa6f-54f404810ba9/deploy-status)](https://app.netlify.com/projects/harold-cards/deploys)
+
 Harold is an automated pipeline that turns [Good News Network](https://www.goodnewsnetwork.org/)
 articles into Instagram-ready cards and posts them. **Everything is code — no Canva, no manual
 design step.** The single-word orange recolor on the headline (the GNN signature) is done in a
