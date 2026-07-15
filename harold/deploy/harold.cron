@@ -1,0 +1,19 @@
+# Harold daily scheduler
+# ----------------------
+# Runs the full chain (fetch -> editorial -> render -> publish) once a day.
+#
+# Install with:  crontab deploy/harold.cron
+# (edit ABSOLUTE PATHS below first; cron does not expand ~ or your PATH)
+#
+# Times are interpreted in this timezone:
+CRON_TZ=America/Chicago
+#
+# Load secrets from .env by sourcing it before running. Adjust /opt/harold to
+# wherever the repo lives on the box.
+#
+# 9:00am Central, every day. DRY-RUN by default (renders + logs caption, does
+# NOT post). Once you've approved dry-runs, change `--dry-run` to `--live`.
+0 9 * * *  cd /opt/harold && set -a && . ./.env && set +a && /usr/bin/node src/run.js --dry-run >> /var/log/harold.log 2>&1
+#
+# Go-live version (uncomment, and comment out the line above):
+# 0 9 * * *  cd /opt/harold && set -a && . ./.env && set +a && /usr/bin/node src/run.js --live >> /var/log/harold.log 2>&1

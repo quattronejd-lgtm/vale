@@ -1,0 +1,46 @@
+name: Harold CI
+
+on:
+  pull_request:
+    paths:
+      - "harold/**"
+      - ".github/workflows/harold-ci.yml"
+  push:
+    branches:
+      - claude/busy-turing-rf64o8
+    paths:
+      - "harold/**"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: harold
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: harold/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: End-to-end pipeline test (mock feed)
+        run: npm run e2e
+
+      - name: Acceptance render (locked template, 1080x1350 JPEG)
+        run: npm run acceptance
+
+      - name: Upload rendered card
+        uses: actions/upload-artifact@v4
+        with:
+          name: egypt-card
+          path: harold/out/egypt.jpg
+          retention-days: 14
