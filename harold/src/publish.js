@@ -194,6 +194,36 @@ export async function createMediaContainer(imageUrl, caption) {
   return json.id;
 }
 
+/**
+ * Wait until the container has finished processing. Instagram downloads and
+ * processes the image asynchronously — publishing before status FINISHED
+ * fails with code 9007 "Media ID is not available".
+ */
+export async function waitForContainer(creationId, { timeoutMs = 120_000, intervalMs = 3000 } = {}) {
+  const token = requireEnv("IG_ACCESS_TOKEN");
+  const base = graphBase(token);
+  const deadline = Date.now() + timeoutMs;
+  for (;;) {
+    const res = await fetch(
+      `${base}/${creationId}?fields=status_code&access_token=${encodeURIComponent(token)}`
+    );
+    const json = await res.json();
+    if (!res.ok) {
+      throw new Error(`publish: container status check failed — ${JSON.stringify(json.error || json)}`);
+    }
+    const status = json.status_code;
+    if (status === "FINISHED") return;
+    if (status === "ERROR") {
+      throw new Error("publish: container processing errored (check the image URL is publicly reachable)");
+    }
+    if (Date.now() > deadline) {
+      throw new Error(`publish: container still ${status || "processing"} after ${timeoutMs / 1000}s`);
+    }
+    console.log(`[publish] container ${status || "processing"}… waiting`);
+    await new Promise((r) => setTimeout(r, intervalMs));
+  }
+}
+
 /** Step 2: publish the container. Returns the published media id. */
 export async function publishContainer(creationId) {
   const igUser = await igUserId();
@@ -219,6 +249,7 @@ export async function publishCard({ imagePath, caption }) {
   const imageUrl = await uploadPublicImage(imagePath);
   const creationId = await createMediaContainer(imageUrl, caption);
   console.log(`[publish] container created: ${creationId}`);
+  await waitForContainer(creationId);
   const mediaId = await publishContainer(creationId);
   console.log(`[publish] published media: ${mediaId}`);
   return { mediaId, imageUrl };
