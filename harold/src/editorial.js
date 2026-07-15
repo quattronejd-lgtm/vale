@@ -15,60 +15,72 @@ export function pickArticle(items) {
 
 // ---- orange-word selection ----
 
+// THE HIGHLIGHT RULE: the orange is ONE contiguous span of the phrase — a single
+// run of 1–3 adjacent words — never two separate spots. pickOrangeWords() always
+// returns a one-element array holding that single verbatim span.
+
 const PROMPT = (headline) => `You are the art director for the Good News Network Instagram feed.
-On each card, 1 to 3 words of the headline are recolored orange to carry the "good news" punch — usually the SUBJECT or the OUTCOME (a superlative, a number, or the hopeful payoff).
+On each card, exactly ONE contiguous span of the headline is recolored orange to carry the
+"good news" punch — usually the OUTCOME or the SUBJECT (a number + what it counts, a superlative,
+or the hopeful payoff). The highlight is one unbroken run of words — NEVER two separate spots.
 
 Rules:
-- Return ONLY exact substrings copied verbatim from the headline (same casing, same words, contiguous).
-- 1 to 3 items total. A single item may be a multi-word phrase (e.g. "POWER 6 MILLION").
-- Never pick filler ("THE", "A", "TO", "OF", "AND").
-- Prefer the most emotionally resonant / newsworthy span.
+- Return exactly ONE string, copied verbatim from the headline (same casing, contiguous words).
+- The span is 1 to 3 adjacent words.
+- Never start/end on filler ("THE", "A", "TO", "OF", "AND").
+- Prefer the most emotionally resonant / newsworthy run (e.g. "6 MILLION HOMES", "WINDIEST").
 
 Headline: ${JSON.stringify(headline)}
 
-Respond with ONLY a JSON array of strings, e.g. ["WINDIEST","POWER 6 MILLION"]. No prose.`;
+Respond with ONLY a JSON array containing that single string, e.g. ["6 MILLION HOMES"]. No prose.`;
 
-/** Heuristic fallback: superlatives (-EST), number-led spans, else the longest content word. */
+/**
+ * Heuristic fallback → ONE contiguous span. Priority:
+ *   1. number-led outcome (the number + up to 2 following words)
+ *   2. superlative (…EST)
+ *   3. longest content word
+ */
 export function pickOrangeWordsHeuristic(headline) {
   const words = headline.split(/\s+/);
+  const strip = (s) => s.replace(/[.,:;!?]+$/, "");
   const stop = new Set(["THE", "A", "AN", "TO", "OF", "AND", "IN", "ON", "FOR", "WITH", "AS", "AT", "BY", "IT", "IS"]);
-  const picks = [];
 
-  // superlative (WINDIEST, BIGGEST…)
-  const sup = words.find((w) => /[A-Z]{3,}EST[:.,]?$/i.test(w));
-  if (sup) picks.push(sup.replace(/[:.,]$/, ""));
-
-  // number-led span: NUMBER + up to 2 following words (POWER 6 MILLION-ish → grab digit + neighbors)
-  const numIdx = words.findIndex((w) => /^\$?[\d,.]+$/.test(w.replace(/[:.,]$/, "")));
+  // 1) number-led outcome: number + up to 2 following words (e.g. "6 MILLION HOMES")
+  const numIdx = words.findIndex((w) => /^\$?\d[\d,.]*$/.test(strip(w)));
   if (numIdx !== -1) {
-    const start = Math.max(0, numIdx - 1);
-    const span = words
-      .slice(start, numIdx + 2)
-      .join(" ")
-      .replace(/[:.,]$/, "");
-    picks.push(span);
+    for (const n of [3, 2, 1]) {
+      const span = strip(words.slice(numIdx, numIdx + n).join(" "));
+      if (span && headline.includes(span)) return [span];
+    }
   }
 
-  if (picks.length === 0) {
-    const content = words
-      .map((w) => w.replace(/[^A-Za-z0-9$]/g, ""))
-      .filter((w) => w.length >= 5 && !stop.has(w.toUpperCase()));
-    if (content[0]) picks.push(content.sort((a, b) => b.length - a.length)[0]);
+  // 2) superlative (WINDIEST, BIGGEST…)
+  const sup = words.find((w) => /[A-Z]{3,}EST$/i.test(strip(w)));
+  if (sup) {
+    const s = strip(sup);
+    if (headline.includes(s)) return [s];
   }
 
-  // keep only spans that actually occur verbatim, cap at 3
-  return [...new Set(picks)].filter((p) => p && headline.includes(p)).slice(0, 3);
+  // 3) longest content word
+  const content = words
+    .map((w) => w.replace(/[^A-Za-z0-9$]/g, ""))
+    .filter((w) => w.length >= 5 && !stop.has(w.toUpperCase()))
+    .sort((a, b) => b.length - a.length);
+  if (content[0] && headline.includes(content[0])) return [content[0]];
+
+  return [];
 }
 
 /**
- * Choose 1–3 exact substrings from the headline to recolor orange.
+ * Choose the SINGLE contiguous orange span for the headline.
  * Uses Anthropic if ANTHROPIC_API_KEY is set; otherwise the heuristic.
+ * @returns {Promise<string[]>} a one-element array (or [] if nothing suitable)
  */
 export async function pickOrangeWords(headline) {
   const key = process.env.ANTHROPIC_API_KEY;
   if (!key) {
     const picks = pickOrangeWordsHeuristic(headline);
-    console.log(`[editorial] orange words (heuristic): ${JSON.stringify(picks)}`);
+    console.log(`[editorial] orange span (heuristic): ${JSON.stringify(picks)}`);
     return picks;
   }
 
@@ -83,17 +95,17 @@ export async function pickOrangeWords(headline) {
     });
     const text = msg.content.map((b) => (b.type === "text" ? b.text : "")).join("").trim();
     const arr = JSON.parse(text.match(/\[[\s\S]*\]/)?.[0] || text);
-    // keep only verbatim substrings, cap 3
-    const picks = arr
-      .filter((s) => typeof s === "string" && headline.includes(s))
-      .slice(0, 3);
-    if (picks.length === 0) throw new Error("LLM returned no verbatim matches");
-    console.log(`[editorial] orange words (${ANTHROPIC_MODEL}): ${JSON.stringify(picks)}`);
-    return picks;
+    // enforce the rule: take the FIRST verbatim, contiguous span; exactly one.
+    const span = (Array.isArray(arr) ? arr : [arr]).find(
+      (s) => typeof s === "string" && headline.includes(s)
+    );
+    if (!span) throw new Error("LLM returned no verbatim span");
+    console.log(`[editorial] orange span (${ANTHROPIC_MODEL}): ${JSON.stringify([span])}`);
+    return [span];
   } catch (err) {
     console.warn(`[editorial] LLM selection failed (${err.message}); using heuristic`);
     const picks = pickOrangeWordsHeuristic(headline);
-    console.log(`[editorial] orange words (heuristic): ${JSON.stringify(picks)}`);
+    console.log(`[editorial] orange span (heuristic): ${JSON.stringify(picks)}`);
     return picks;
   }
 }

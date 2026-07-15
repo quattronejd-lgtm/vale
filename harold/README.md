@@ -87,11 +87,11 @@ This is the signature — **do not restyle once approved.** Downstream just fill
 - Canvas exactly **1080×1350**.
 - Background: article hero photo, `object-fit: cover`, full bleed.
 - Dark gradient scrim (transparent top → near-black bottom) for headline legibility.
-- GNN circular badge ("GOOD NEWS / EST. '97") pinned top-left.
+- GNN flower logo (white seed-of-life cluster in a ring), white on transparent, centered up top.
 - Headline: bottom-left, heavy condensed uppercase (Anton), **auto-fit** so 1–3 lines
   always fill the safe box without overflow (`render.js` scales font-size down until it fits).
-- Keywords: the chosen orange words are wrapped in `<span class="kw">…</span>`; only `.kw`
-  words recolor to GNN orange, the rest stay white.
+- Keywords: **one contiguous span** of the headline is wrapped in `<span class="kw">…</span>`
+  and recolors to GNN orange — a single highlight, never two separate spots. The rest stay white.
 
 Two knobs, both in `card.css`:
 
@@ -105,11 +105,12 @@ same inputs produce a byte-stable JPEG.
 
 ## Editorial (`src/editorial.js`)
 
-`pickOrangeWords(headline)` chooses the 1–3 words that carry the good-news punch (the subject
-or the outcome — a superlative, a number, the hopeful payoff) and returns the **exact substrings**
-to wrap. It's an LLM call (Anthropic, temperature 0) with a tight prompt; if no API key is set it
-falls back to a transparent heuristic (superlatives, number-led spans, longest content word).
-Every choice is logged.
+`pickOrangeWords(headline)` chooses **one contiguous span** (1–3 adjacent words) that carries the
+good-news punch — the outcome or subject (a number + what it counts, a superlative, the hopeful
+payoff) — and returns the **exact verbatim substring** to wrap. The highlight is always a single
+run, never two separate spots. It's an LLM call (Anthropic, temperature 0) with a tight prompt; if
+no API key is set it falls back to a transparent heuristic (number-led outcome → superlative →
+longest content word). Every choice is logged.
 
 ## Publishing to Instagram (`src/publish.js`)
 

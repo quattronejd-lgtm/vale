@@ -80,36 +80,23 @@ html, body {
   pointer-events: none;
 }
 
-/* ---- GNN circular badge ---- */
+/* ---- GNN flower logo: white seed-of-life cluster in a ring, centered up top ---- */
 .badge {
   position: absolute;
-  top: 56px;
-  left: 56px;
-  width: 150px;
-  height: 150px;
-  filter: drop-shadow(0 2px 10px rgba(0, 0, 0, 0.45));
-}
-.badge-disc {
-  fill: var(--gnn-orange);
+  top: 52px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 148px;
+  height: 148px;
+  /* subtle shadow so the white logo stays legible over bright photos */
+  filter: drop-shadow(0 2px 12px rgba(0, 0, 0, 0.5));
 }
 .badge-ring {
   fill: none;
   stroke: #fff;
-  stroke-width: 2.5;
+  stroke-width: 3.5;
 }
-.badge-text {
-  fill: #fff;
-  font-family: var(--headline-font);
-  font-size: 22px;
-  letter-spacing: 1.2px;
-}
-.badge-sun line,
-.badge-horizon {
-  stroke: #fff;
-  stroke-width: 3;
-  stroke-linecap: round;
-}
-.badge-sun-dome {
+.badge-flower circle {
   fill: #fff;
 }
 

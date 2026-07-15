@@ -18,30 +18,19 @@
 
     <div class="scrim"></div>
 
-    <!-- GNN circular badge: "GOOD NEWS" / sunrise / "EST. '97" -->
-    <div class="badge" id="badge" aria-label="Good News Network, established 1997">
+    <!-- GNN flower logo: seed-of-life cluster inside a ring. White on transparent,
+         centered up top. -->
+    <div class="badge" id="badge" aria-label="Good News Network">
       <svg viewBox="0 0 200 200" width="100%" height="100%">
-        <defs>
-          <path id="arcTop" d="M 34 100 A 66 66 0 0 1 166 100" />
-          <path id="arcBottom" d="M 40 108 A 60 60 0 0 0 160 108" />
-        </defs>
-        <circle cx="100" cy="100" r="97" class="badge-disc" />
-        <circle cx="100" cy="100" r="90" class="badge-ring" />
-        <text class="badge-text badge-top">
-          <textPath href="#arcTop" startOffset="50%" text-anchor="middle">GOOD&#160;NEWS</textPath>
-        </text>
-        <text class="badge-text badge-bottom">
-          <textPath href="#arcBottom" startOffset="50%" text-anchor="middle">EST.&#160;&#39;97</textPath>
-        </text>
-        <!-- sunrise mark -->
-        <g class="badge-sun">
-          <line x1="100" y1="118" x2="100" y2="62" />
-          <line x1="100" y1="118" x2="72"  y2="74" />
-          <line x1="100" y1="118" x2="128" y2="74" />
-          <line x1="100" y1="118" x2="60"  y2="96" />
-          <line x1="100" y1="118" x2="140" y2="96" />
-          <path class="badge-sun-dome" d="M 78 118 A 22 22 0 0 1 122 118 Z" />
-          <line class="badge-horizon" x1="66" y1="118" x2="134" y2="118" />
+        <circle class="badge-ring" cx="100" cy="100" r="70" />
+        <g class="badge-flower">
+          <circle cx="100"   cy="100" r="18" />
+          <circle cx="100"   cy="62"  r="18" />
+          <circle cx="132.9" cy="81"  r="18" />
+          <circle cx="132.9" cy="119" r="18" />
+          <circle cx="100"   cy="138" r="18" />
+          <circle cx="67.1"  cy="119" r="18" />
+          <circle cx="67.1"  cy="81"  r="18" />
         </g>
       </svg>
     </div>
