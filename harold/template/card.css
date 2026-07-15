@@ -96,7 +96,7 @@ html, body {
   pointer-events: none;
 }
 
-/* ---- GNN flower logo: white seed-of-life cluster in a ring, centered up top ---- */
+/* ---- GNN flower logo: the brand's own mark, centered up top ---- */
 .badge {
   position: absolute;
   top: 30px;
@@ -107,13 +107,11 @@ html, body {
   /* subtle shadow so the white logo stays legible over bright photos */
   filter: drop-shadow(0 2px 12px rgba(0, 0, 0, 0.5));
 }
-.badge-ring {
-  fill: none;
-  stroke: #fff;
-  stroke-width: 3.5;
-}
-.badge-flower circle {
-  fill: #fff;
+.badge img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
 }
 
 /* ---- Headline ---- */
