@@ -142,9 +142,15 @@ file) and name it e.g. `harold-cards` → note the site URL (`PUBLIC_IMAGE_BASE`
 Site configuration → Site details, the **Site ID** (`NETLIFY_SITE_ID`) → then User settings →
 Applications → **New access token** (`NETLIFY_AUTH_TOKEN`). Fill all three in `.env`.
 
-Secrets (`IG_*`, `NETLIFY_*`) are read from env and **never printed**. You need an Instagram
-Business/Creator account linked to a Facebook Page and a long-lived access token with
-`instagram_content_publish` permissions.
+Secrets (`IG_*`, `NETLIFY_*`) are read from env and **never printed**.
+
+Credentials come from the Meta app's **Instagram use case → "API setup with Instagram business
+login" → Generate access tokens**: connect the Instagram professional account (log in as the IG
+account itself), copy its **account ID** (`IG_USER_ID`) and its **long-lived token**
+(`IG_ACCESS_TOKEN`, ~60 days). These tokens talk to `graph.instagram.com`, so set
+`IG_GRAPH_BASE=https://graph.instagram.com/v21.0` (the GitHub Actions workflow already does).
+Classic Facebook-login tokens (`instagram_content_publish` via a linked Page) also work with the
+default `graph.facebook.com` base.
 
 ## Scheduling
 
