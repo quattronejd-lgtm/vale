@@ -116,7 +116,7 @@ function fitHeadlineInPage() {
     if (!overflowW && !overflowH && lines <= 5) break;
   }
   // approved taste: a hair smaller than the largest fit
-  size = Math.round(size * 0.96);
+  size = Math.round(size * 0.98);
   el.style.fontSize = size + "px";
   return size;
 }

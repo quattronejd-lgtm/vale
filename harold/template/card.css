@@ -43,8 +43,8 @@
   --card-h: 1350px;
 
   /* Headline safe box insets */
-  --safe-left: 68px;
-  --safe-right: 68px;
+  --safe-left: 56px;
+  --safe-right: 56px;
   --safe-bottom: 72px;
 }
 
@@ -99,11 +99,11 @@ html, body {
 /* ---- GNN flower logo: the brand's own mark, centered up top ---- */
 .badge {
   position: absolute;
-  top: 30px;
+  top: 34px;
   left: 50%;
   transform: translateX(-50%);
-  width: 112px;
-  height: 112px;
+  width: 132px;
+  height: 132px;
   /* subtle shadow so the white logo stays legible over bright photos */
   filter: drop-shadow(0 2px 12px rgba(0, 0, 0, 0.5));
 }
