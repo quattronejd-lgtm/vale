@@ -15,7 +15,6 @@
 import { readFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
 
-const GRAPH = process.env.IG_GRAPH_BASE || "https://graph.facebook.com/v21.0";
 const NETLIFY_API = process.env.NETLIFY_API_BASE || "https://api.netlify.com/api/v1";
 
 function requireEnv(name) {
@@ -26,13 +25,31 @@ function requireEnv(name) {
   return v;
 }
 
+/**
+ * Two token flavors exist:
+ *   IGAA…  Instagram-business-login token  → graph.instagram.com
+ *   EAA…   Facebook-login token            → graph.facebook.com
+ * Auto-detect from the prefix; IG_GRAPH_BASE overrides when set.
+ */
+function graphBase(token) {
+  const override = (process.env.IG_GRAPH_BASE || "").replace(/\s+/g, "");
+  if (override) return override.replace(/\/+$/, "");
+  return token.startsWith("IGAA")
+    ? "https://graph.instagram.com/v21.0"
+    : "https://graph.facebook.com/v21.0";
+}
+
+function tokenFlavor(token) {
+  return token.startsWith("IGAA") ? "instagram-login" : "facebook-login";
+}
+
 let cachedIgUserId = null;
 
 /**
  * The IG account id to post as. Uses IG_USER_ID when set; otherwise resolves
- * it from the token via GET /me (works with Instagram-business-login tokens,
- * whose /me exposes user_id). The id is NOT a secret — it's the account's
- * public identifier — so logging it is fine.
+ * from the token: Instagram-login tokens expose it on /me (user_id);
+ * Facebook-login tokens expose it via /me/accounts → the linked Page's
+ * instagram_business_account. The id is NOT a secret — logging it is fine.
  */
 async function igUserId() {
   const configured = (process.env.IG_USER_ID || "").trim();
@@ -40,12 +57,37 @@ async function igUserId() {
   if (cachedIgUserId) return cachedIgUserId;
 
   const token = requireEnv("IG_ACCESS_TOKEN");
-  const res = await fetch(`${GRAPH}/me?fields=user_id,id&access_token=${encodeURIComponent(token)}`);
-  const json = await res.json();
-  if (!res.ok) {
-    throw new Error(`publish: could not resolve IG user id — ${JSON.stringify(json.error || json)}`);
+  const base = graphBase(token);
+  const flavor = tokenFlavor(token);
+  console.log(`[publish] token flavor: ${flavor} (prefix ${token.slice(0, 4)}…) via ${new URL(base).host}`);
+
+  if (flavor === "instagram-login") {
+    const res = await fetch(`${base}/me?fields=user_id,id&access_token=${encodeURIComponent(token)}`);
+    const json = await res.json();
+    if (!res.ok) {
+      throw new Error(`publish: could not resolve IG user id from /me — ${JSON.stringify(json.error || json)}`);
+    }
+    cachedIgUserId = String(json.user_id || json.id);
+  } else {
+    const res = await fetch(
+      `${base}/me/accounts?fields=name,instagram_business_account&access_token=${encodeURIComponent(token)}`
+    );
+    const json = await res.json();
+    if (!res.ok) {
+      throw new Error(`publish: could not list Pages for Facebook-login token — ${JSON.stringify(json.error || json)}`);
+    }
+    const page = (json.data || []).find((p) => p.instagram_business_account?.id);
+    if (!page) {
+      throw new Error(
+        "publish: no linked instagram_business_account found on this Facebook token's Pages. " +
+          "Either use an Instagram-business-login token (starts with IGAA, from the use case's " +
+          "Generate access tokens section) or a Facebook token with pages_show_list + a Page linked to the IG account."
+      );
+    }
+    console.log(`[publish] using IG account linked to Page "${page.name}"`);
+    cachedIgUserId = String(page.instagram_business_account.id);
   }
-  cachedIgUserId = String(json.user_id || json.id);
+
   console.log(`[publish] resolved IG user id: ${cachedIgUserId}`);
   return cachedIgUserId;
 }
@@ -134,7 +176,7 @@ export async function createMediaContainer(imageUrl, caption) {
     caption: caption || "",
     access_token: token,
   });
-  const res = await fetch(`${GRAPH}/${igUser}/media`, { method: "POST", body });
+  const res = await fetch(`${graphBase(token)}/${igUser}/media`, { method: "POST", body });
   const json = await res.json();
   if (!res.ok || !json.id) {
     // never surface the token; Graph errors don't echo it back
@@ -152,7 +194,7 @@ export async function publishContainer(creationId) {
     creation_id: creationId,
     access_token: token,
   });
-  const res = await fetch(`${GRAPH}/${igUser}/media_publish`, { method: "POST", body });
+  const res = await fetch(`${graphBase(token)}/${igUser}/media_publish`, { method: "POST", body });
   const json = await res.json();
   if (!res.ok || !json.id) {
     throw new Error(`publish: media_publish failed — ${JSON.stringify(json.error || json)}`);
