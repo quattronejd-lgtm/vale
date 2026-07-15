@@ -132,12 +132,12 @@ html, body {
 }
 
 /* The whole reason we code this instead of Canva: only the .kw span
-   recolors; everything else stays white. The fill is a vertical
+   recolors; everything else stays white. The fill is a left→right
    orange→golden-yellow gradient (GNN feed style). box-decoration-break:
    clone restarts the gradient on each wrapped line so every line of the
-   span grades top-orange to bottom-gold. */
+   span grades left-orange to right-gold. */
 .headline .kw {
-  background-image: linear-gradient(to bottom, var(--gnn-orange) 18%, var(--gnn-gold) 88%);
+  background-image: linear-gradient(to right, var(--gnn-orange) 8%, var(--gnn-gold) 92%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
