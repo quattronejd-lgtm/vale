@@ -145,16 +145,17 @@ html, body {
 
 /* The whole reason we code this instead of Canva: only the .kw span
    recolors; everything else stays white. The fill is a left→right
-   orange→golden-yellow gradient (GNN feed style). box-decoration-break:
-   clone restarts the gradient on each wrapped line so every line of the
-   span grades left-orange to right-gold. */
+   orange→golden-yellow gradient (GNN feed style) that flows ONCE across
+   the whole span even when it wraps (box-decoration-break: slice):
+   solid orange through ~55%, yellowing from around the second-to-last
+   word, final word fully golden. */
 .headline .kw {
-  background-image: linear-gradient(to right, var(--gnn-orange) 0%, var(--gnn-gold) 68%);
+  background-image: linear-gradient(to right, var(--gnn-orange) 0%, var(--gnn-orange) 55%, var(--gnn-gold) 95%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  -webkit-box-decoration-break: clone;
-  box-decoration-break: clone;
+  -webkit-box-decoration-break: slice;
+  box-decoration-break: slice;
   /* text-shadow would paint through transparent glyphs — remove it here */
   text-shadow: none;
 }
