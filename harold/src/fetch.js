@@ -57,16 +57,33 @@ async function fetchOgImage(articleUrl) {
   }
 }
 
-/** Best-effort hero image extraction for one feed item. */
+/** Strip WordPress size suffixes (…-300x225.jpg) to get the original file. */
+function stripWpSize(url) {
+  return url.replace(/-\d{2,4}x\d{2,4}(?=\.(?:jpe?g|png|webp|gif)(?:$|[?#]))/i, "");
+}
+
+/**
+ * Best-effort hero image extraction for one feed item. The article page's
+ * og:image (the full-size featured image) beats RSS variants, which are
+ * often small thumbnails or odd crops; among media:content entries prefer
+ * the widest.
+ */
 async function resolveHero(item) {
-  return (
-    firstUrl(item.mediaContent) ||
+  const og = item.link ? await fetchOgImage(item.link) : null;
+  if (og) return stripWpSize(og);
+
+  const media = (Array.isArray(item.mediaContent) ? item.mediaContent : [])
+    .map((n) => ({ url: n?.$?.url, w: Number(n?.$?.width) || 0 }))
+    .filter((c) => c.url)
+    .sort((a, b) => b.w - a.w);
+  if (media[0]) return stripWpSize(media[0].url);
+
+  const fallback =
     item.enclosure?.url ||
     firstUrl(item.mediaThumbnail) ||
-    // <img> inside content:encoded
     item.contentEncoded?.match(/<img[^>]+src=["']([^"']+)["']/i)?.[1] ||
-    (item.link ? await fetchOgImage(item.link) : null)
-  );
+    null;
+  return fallback ? stripWpSize(fallback) : null;
 }
 
 // GNN's feed mixes real stories with recurring daily features ("Good News in
@@ -83,10 +100,29 @@ export function isRecurringFeature(title = "") {
   return RECURRING_FEATURE_PATTERNS.some((re) => re.test(title));
 }
 
-function firstSentence(html = "", max = 220) {
+/**
+ * COPY RULE: excerpts end at sentence boundaries — never a mid-thought "…".
+ * Accumulate whole sentences up to ~max chars; hard word-boundary trim only
+ * if even the first sentence is colossal.
+ */
+function firstSentence(html = "", max = 300) {
   const text = html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
   if (!text) return "";
-  return text.length > max ? text.slice(0, max).replace(/\s+\S*$/, "") + "…" : text;
+  const sentences = text.match(/[^.!?]+[.!?]+["'”’]?/g);
+  if (!sentences) {
+    return text.length > max ? text.slice(0, max).replace(/\s+\S*$/, "") + "…" : text;
+  }
+  let out = "";
+  for (const s of sentences) {
+    const next = out ? `${out} ${s.trim()}` : s.trim();
+    if (out && next.length > max) break;
+    out = next;
+    if (out.length >= max) break;
+  }
+  if (out.length > max * 1.5) {
+    return out.slice(0, max).replace(/\s+\S*$/, "") + "…";
+  }
+  return out;
 }
 
 // ---- ledger ----

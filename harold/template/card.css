@@ -37,15 +37,15 @@
   /* Lilita One approved 2026-07-15 (Joe) — matches the GNN feed face. */
   --headline-font: "Lilita One", "Anton", "Arial Narrow", sans-serif;
   --gnn-orange: #EA5B26;
-  --gnn-gold: #F6A821;
+  --gnn-gold: #F9C440;
 
   --card-w: 1080px;
   --card-h: 1350px;
 
   /* Headline safe box insets */
-  --safe-left: 72px;
-  --safe-right: 72px;
-  --safe-bottom: 92px;
+  --safe-left: 56px;
+  --safe-right: 56px;
+  --safe-bottom: 84px;
 }
 
 * {
@@ -99,7 +99,7 @@ html, body {
 /* ---- GNN flower logo: white seed-of-life cluster in a ring, centered up top ---- */
 .badge {
   position: absolute;
-  top: 52px;
+  top: 32px;
   left: 50%;
   transform: translateX(-50%);
   width: 148px;
@@ -124,11 +124,12 @@ html, body {
   bottom: var(--safe-bottom);
   /* Cap the vertical space the headline may occupy (keeps it clear
      of the badge). The auto-fit routine scales font-size to fill
-     this box across 1–3 lines without overflowing. */
-  max-height: 660px;
+     this box across 1–4 lines without overflowing. */
+  max-height: 720px;
 }
 
 .headline {
+  text-align: center;
   font-family: var(--headline-font);
   font-weight: 400;
   text-transform: uppercase;
@@ -148,7 +149,7 @@ html, body {
    clone restarts the gradient on each wrapped line so every line of the
    span grades left-orange to right-gold. */
 .headline .kw {
-  background-image: linear-gradient(to right, var(--gnn-orange) 8%, var(--gnn-gold) 92%);
+  background-image: linear-gradient(to right, var(--gnn-orange) 0%, var(--gnn-gold) 68%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
