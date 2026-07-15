@@ -69,6 +69,20 @@ async function resolveHero(item) {
   );
 }
 
+// GNN's feed mixes real stories with recurring daily features ("Good News in
+// History, July 15", quote/horoscope-style roundups). Cards should only be
+// made from actual news stories — skip the features.
+const RECURRING_FEATURE_PATTERNS = [
+  /good news in history/i,
+  /quote of the day/i,
+  /morning journey/i,
+  /good news roundup/i,
+];
+
+export function isRecurringFeature(title = "") {
+  return RECURRING_FEATURE_PATTERNS.some((re) => re.test(title));
+}
+
 function firstSentence(html = "", max = 220) {
   const text = html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
   if (!text) return "";
@@ -122,6 +136,10 @@ export async function fetchArticles({
     if (out.length >= limit) break;
     const link = item.link;
     if (!link || postedLinks.has(link)) continue;
+    if (isRecurringFeature(item.title)) {
+      console.log(`[fetch] skipping recurring feature: ${item.title}`);
+      continue;
+    }
     out.push({
       title: (item.title || "").trim(),
       link,
