@@ -5,14 +5,14 @@ on:
     # Four posts a day: 9am, 12pm, 3pm, 6pm America/Chicago, year-round.
     # GitHub cron is UTC-only, so fire at both CDT and CST candidates for
     # each slot and let the timezone guard run exactly the right ones.
-    - cron: "0 14 * * *"   # 9am CDT
-    - cron: "0 15 * * *"   # 9am CST / 10am CDT (guard skips)
-    - cron: "0 17 * * *"   # 12pm CDT
-    - cron: "0 18 * * *"   # 12pm CST / 1pm CDT (guard skips)
-    - cron: "0 20 * * *"   # 3pm CDT
-    - cron: "0 21 * * *"   # 3pm CST / 4pm CDT (guard skips)
-    - cron: "0 23 * * *"   # 6pm CDT
-    - cron: "0 0 * * *"    # 6pm CST / 7pm CDT (guard skips)
+    - cron: "7 14 * * *"   # 9am CDT
+    - cron: "7 15 * * *"   # 9am CST / 10am CDT (guard skips)
+    - cron: "7 17 * * *"   # 12pm CDT
+    - cron: "7 18 * * *"   # 12pm CST / 1pm CDT (guard skips)
+    - cron: "7 20 * * *"   # 3pm CDT
+    - cron: "7 21 * * *"   # 3pm CST / 4pm CDT (guard skips)
+    - cron: "7 23 * * *"   # 6pm CDT
+    - cron: "7 0 * * *"    # 6pm CST / 7pm CDT (guard skips)
   workflow_dispatch:
     inputs:
       mode:
