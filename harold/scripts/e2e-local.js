@@ -20,6 +20,13 @@ const feedXml = (base) => `<?xml version="1.0" encoding="UTF-8"?>
 <channel>
   <title>Good News Network (mock)</title>
   <item>
+    <title>Good News in History, July 15</title>
+    <link>${base}/article/history-july-15</link>
+    <guid>${base}/article/history-july-15</guid>
+    <media:content url="${base}/hero.jpg" medium="image" />
+    <description>On this day in history, many good things happened.</description>
+  </item>
+  <item>
     <title>Egypt: The Windiest Country Starts Project to Power 6 Million Homes</title>
     <link>${base}/article/egypt-wind</link>
     <guid>${base}/article/egypt-wind</guid>
@@ -55,11 +62,13 @@ try {
   const { editorialize } = await import("../src/editorial.js");
   const { render } = await import("../src/render.js");
 
-  // 1) fetch
+  // 1) fetch — the "Good News in History" feature sits first in the feed and
+  // must be skipped; only the real story should come back.
   const items = await fetchArticles({ limit: 5, ledgerPath: LEDGER });
   if (items.length !== 1) throw new Error(`expected 1 item, got ${items.length}`);
   const article = items[0];
-  console.log(`[e2e] fetched: ${article.title}`);
+  if (/history/i.test(article.title)) throw new Error("recurring feature was not skipped");
+  console.log(`[e2e] fetched: ${article.title} (recurring feature skipped)`);
   if (!article.heroImage?.endsWith("/hero.jpg")) {
     throw new Error(`hero not resolved from media:content: ${article.heroImage}`);
   }
