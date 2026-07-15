@@ -34,6 +34,9 @@ jobs:
       # Public config (not secrets)
       NETLIFY_SITE_ID: 1536eb41-70ea-4b6b-aa6f-54f404810ba9
       PUBLIC_IMAGE_BASE: https://harold-cards.netlify.app
+      # Token comes from "Instagram API with Instagram business login", which
+      # talks to graph.instagram.com (not graph.facebook.com).
+      IG_GRAPH_BASE: https://graph.instagram.com/v21.0
       # Secrets — set in repo Settings → Secrets and variables → Actions → Secrets
       IG_USER_ID: ${{ secrets.IG_USER_ID }}
       IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
