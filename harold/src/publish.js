@@ -19,9 +19,33 @@ const GRAPH = process.env.IG_GRAPH_BASE || "https://graph.facebook.com/v21.0";
 const NETLIFY_API = process.env.NETLIFY_API_BASE || "https://api.netlify.com/api/v1";
 
 function requireEnv(name) {
-  const v = process.env[name];
+  const v = (process.env[name] || "").trim();
   if (!v) throw new Error(`publish: missing env ${name}`);
   return v;
+}
+
+let cachedIgUserId = null;
+
+/**
+ * The IG account id to post as. Uses IG_USER_ID when set; otherwise resolves
+ * it from the token via GET /me (works with Instagram-business-login tokens,
+ * whose /me exposes user_id). The id is NOT a secret — it's the account's
+ * public identifier — so logging it is fine.
+ */
+async function igUserId() {
+  const configured = (process.env.IG_USER_ID || "").trim();
+  if (configured) return configured;
+  if (cachedIgUserId) return cachedIgUserId;
+
+  const token = requireEnv("IG_ACCESS_TOKEN");
+  const res = await fetch(`${GRAPH}/me?fields=user_id,id&access_token=${encodeURIComponent(token)}`);
+  const json = await res.json();
+  if (!res.ok) {
+    throw new Error(`publish: could not resolve IG user id — ${JSON.stringify(json.error || json)}`);
+  }
+  cachedIgUserId = String(json.user_id || json.id);
+  console.log(`[publish] resolved IG user id: ${cachedIgUserId}`);
+  return cachedIgUserId;
 }
 
 /** Remote filename: dated so every post gets a fresh URL. */
@@ -100,7 +124,7 @@ export async function uploadPublicImage(localPath, key = remoteKey()) {
 
 /** Step 1: create the media container. Returns the creation id. */
 export async function createMediaContainer(imageUrl, caption) {
-  const igUser = requireEnv("IG_USER_ID");
+  const igUser = await igUserId();
   const token = requireEnv("IG_ACCESS_TOKEN");
 
   const body = new URLSearchParams({
@@ -119,7 +143,7 @@ export async function createMediaContainer(imageUrl, caption) {
 
 /** Step 2: publish the container. Returns the published media id. */
 export async function publishContainer(creationId) {
-  const igUser = requireEnv("IG_USER_ID");
+  const igUser = await igUserId();
   const token = requireEnv("IG_ACCESS_TOKEN");
 
   const body = new URLSearchParams({
