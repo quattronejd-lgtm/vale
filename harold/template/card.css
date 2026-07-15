@@ -127,6 +127,10 @@ html, body {
 }
 
 .headline {
+  /* GNN stretches the type vertically ~1.3x (taller glyphs, same width).
+     Bottom-anchored so the stretch grows upward into empty space. */
+  transform: scaleY(1.3);
+  transform-origin: bottom center;
   text-align: center;
   font-family: var(--headline-font);
   font-weight: 400;
