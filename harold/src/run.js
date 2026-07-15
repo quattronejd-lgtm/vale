@@ -6,6 +6,7 @@
 //   node src/run.js --live     # actually publish to Instagram
 import { fetchArticles, markPosted, DEFAULT_LEDGER } from "./fetch.js";
 import { pickArticle, editorialize } from "./editorial.js";
+import { vetHero } from "./hero.js";
 import { render } from "./render.js";
 import { publishCard } from "./publish.js";
 import { fileURLToPath } from "node:url";
@@ -40,9 +41,12 @@ export async function main(argv = process.argv.slice(2)) {
   // 2) editorial
   const { headline, orangeWords, caption } = await editorialize(article);
 
+  // 2b) photo-editor gate: judge the hero, maybe substitute stock
+  const hero = await vetHero({ heroImage: article.heroImage, title: article.title });
+
   // 3) render
   const rendered = await render({
-    heroImage: article.heroImage,
+    heroImage: hero.url,
     headline,
     orangeWords,
     out: OUT,

@@ -47,6 +47,7 @@ jobs:
       IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
       NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
     steps:
       - name: Timezone guard (post slots are 9am/12pm/3pm/6pm America/Chicago)
         id: guard
