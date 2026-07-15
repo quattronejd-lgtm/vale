@@ -16,22 +16,35 @@ const ANTHROPIC_MODEL = process.env.HAROLD_EDITORIAL_MODEL || "claude-haiku-4-5-
 const PEXELS_API = "https://api.pexels.com/v1";
 const MAX_VISION_BYTES = 4.5 * 1024 * 1024; // Anthropic image size limit headroom
 
-const GATE_PROMPT = (title) => `You are the photo editor for the Good News Network Instagram feed.
-Assess this candidate hero image for the story below. It would run as a full-bleed 1080×1350
-card background with a headline over the lower third.
+const GATE_PROMPT = (title) => `You are a demanding photo editor for the Good News Network
+Instagram feed. Assess this candidate hero image for the story below. It would run as a
+full-bleed 1080×1350 card background with a headline over the lower third.
 
 Respond with ONLY a JSON object:
 {"usable": true|false, "subjectSpecific": true|false, "pexelsQuery": "2-4 words"}
 
-- usable: true only if it reads premium — sharp, well-composed, emotionally fitting. false for
-  video-still collages/split frames, text- or logo-heavy graphics, blurry/tiny upscales, or
-  drab/awkward shots.
-- subjectSpecific: true if the story is about a particular person, animal, or place whose photo
-  a generic stock image would misrepresent; false if the topic is generic (coffee, wind farms,
-  oceans, classrooms).
-- pexelsQuery: a short stock-photo search phrase for the story's TOPIC.
+- usable: HOLD A HIGH BAR — default to false unless the image would genuinely stop a scroll:
+  vibrant, sharp, well-lit, strong clear subject, works with text over the lower third.
+  NOT usable: dim/murky shots, cluttered frames, archival "record shots", video-still
+  collages/split frames, text- or logo-heavy graphics, blurry or tiny upscales, drab or
+  awkward compositions.
+- subjectSpecific: true ONLY when the story is about a particular PERSON or individual ANIMAL
+  whose photo a stock image would misrepresent. Places, buildings, artifacts, landscapes,
+  and general topics are NOT subject-specific — an evocative stock image is fine for those.
+- pexelsQuery: a short, visual stock-photo search phrase for the story's TOPIC
+  (e.g. "egyptian tomb hieroglyphics", "wind turbines sunset").
 
 Headline: ${JSON.stringify(title)}`;
+
+const PICK_PROMPT = (title) => `You are the photo editor for the Good News Network Instagram
+feed. Below are candidate stock photos (in order: photo 1, photo 2, photo 3) to run full-bleed
+behind this headline:
+
+${JSON.stringify(title)}
+
+Respond with ONLY a JSON object: {"choice": 1|2|3|0}
+Pick the photo that is most scroll-stopping AND most plausibly fits the story's topic.
+Answer 0 only if none of them fit the topic at all.`;
 
 function key(name) {
   return (process.env[name] || "").replace(/\s+/g, "");
@@ -85,9 +98,46 @@ async function pexelsSearch(query) {
   );
   if (!res.ok) throw new Error(`pexels search failed ${res.status}`);
   const json = await res.json();
-  const photo = (json.photos || [])[0];
-  if (!photo) return null;
-  return { url: photo.src.large2x || photo.src.original, photographer: photo.photographer };
+  return (json.photos || []).map((p) => ({
+    preview: p.src.medium,
+    url: p.src.large2x || p.src.original,
+    photographer: p.photographer,
+  }));
+}
+
+/** Have the photo editor pick the best of the stock candidates (or none). */
+async function pickStock(candidates, title) {
+  if (candidates.length === 0) return null;
+  if (candidates.length === 1) return candidates[0];
+
+  const images = [];
+  for (const c of candidates) {
+    const img = await fetchImage(c.preview);
+    if (img && /^image\/(jpe?g|png|webp)$/.test(img.mediaType)) {
+      images.push({
+        type: "image",
+        source: { type: "base64", media_type: img.mediaType, data: img.bytes.toString("base64") },
+      });
+    }
+  }
+  if (images.length < candidates.length) return candidates[0]; // preview fetch flaked — just take the top hit
+
+  try {
+    const { default: Anthropic } = await import("@anthropic-ai/sdk");
+    const client = new Anthropic({ apiKey: key("ANTHROPIC_API_KEY") });
+    const msg = await client.messages.create({
+      model: ANTHROPIC_MODEL,
+      max_tokens: 60,
+      temperature: 0,
+      messages: [{ role: "user", content: [...images, { type: "text", text: PICK_PROMPT(title) }] }],
+    });
+    const text = msg.content.map((b) => (b.type === "text" ? b.text : "")).join("").trim();
+    const { choice } = JSON.parse(text.match(/\{[\s\S]*\}/)?.[0] || text);
+    if (choice === 0) return null;
+    return candidates[(choice || 1) - 1] || candidates[0];
+  } catch {
+    return candidates[0];
+  }
 }
 
 /**
@@ -118,9 +168,10 @@ export async function vetHero({ heroImage, title }) {
   if (!key("PEXELS_API_KEY") || !verdict.pexelsQuery) return keep;
 
   try {
-    const stock = await pexelsSearch(verdict.pexelsQuery);
+    const candidates = await pexelsSearch(verdict.pexelsQuery);
+    const stock = await pickStock(candidates, title);
     if (!stock) {
-      console.log("[hero] no Pexels results — keeping article photo");
+      console.log("[hero] no fitting Pexels result — keeping article photo");
       return keep;
     }
     console.log(`[hero] substituting Pexels photo by ${stock.photographer}`);
