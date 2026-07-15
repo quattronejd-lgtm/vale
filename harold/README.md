@@ -121,22 +121,24 @@ superlative → longest content word). Every choice is logged.
 ## Publishing to Instagram (`src/publish.js`)
 
 The Graph API can **only ingest a PUBLIC image URL** — it cannot accept a local file or upload.
-Harold uses **Cloudflare R2** for the public hosting:
+Harold uses **Netlify** for the public hosting:
 
-1. **Upload to R2.** After render, Harold uploads the JPEG to your R2 bucket via the
-   S3-compatible API under a **dated key** (`card-YYYY-MM-DD.jpg`) — unique per post, so Meta's
-   URL cache can never serve a stale card. The bucket is publicly served at `PUBLIC_IMAGE_BASE`
-   (its `r2.dev` URL or a custom domain).
+1. **Deploy to Netlify.** After render, Harold deploys the JPEG to a **dedicated Netlify site**
+   via the deploy API, under a **dated filename** (`card-YYYY-MM-DD.jpg`) — unique per post, so
+   Meta's URL cache can never serve a stale card. The site's URL is `PUBLIC_IMAGE_BASE`.
 2. **Create a media container** — `POST /{IG_USER_ID}/media` with `image_url` + `caption`.
 3. **Publish** — `POST /{IG_USER_ID}/media_publish` with the returned `creation_id`.
 
-R2 setup (once, ~10 min): Cloudflare dashboard → R2 → Create bucket (e.g. `harold-cards`) →
-Settings → enable public access (note the `pub-….r2.dev` URL) → back on the R2 overview page,
-create an API token with Object Read & Write scoped to the bucket. Fill `R2_ACCOUNT_ID`,
-`R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET`, and `PUBLIC_IMAGE_BASE` in `.env`.
-One ~130 KB card/day stays comfortably inside R2's free tier, and R2 has no egress fees.
+⚠️ A Netlify deploy **replaces the whole site's content**, so `NETLIFY_SITE_ID` must point at a
+site used only for Harold cards — never a real site. Old card URLs disappearing after the next
+deploy is fine: Instagram copies the image at ingest time.
 
-Secrets (`IG_*`, `R2_*`) are read from env and **never printed**. You need an Instagram
+Netlify setup (once, ~5 min): dashboard → **Add new site → Deploy manually** (drag any placeholder
+file) and name it e.g. `harold-cards` → note the site URL (`PUBLIC_IMAGE_BASE`) and, under
+Site configuration → Site details, the **Site ID** (`NETLIFY_SITE_ID`) → then User settings →
+Applications → **New access token** (`NETLIFY_AUTH_TOKEN`). Fill all three in `.env`.
+
+Secrets (`IG_*`, `NETLIFY_*`) are read from env and **never printed**. You need an Instagram
 Business/Creator account linked to a Facebook Page and a long-lived access token with
 `instagram_content_publish` permissions.
 

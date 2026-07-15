@@ -1,16 +1,22 @@
 // publish.js — post the rendered JPEG to Instagram via the Graph API.
 //
 // The Graph API can only ingest a PUBLIC image URL, so the flow is:
-//   1. upload out/card.jpg to Cloudflare R2 under a dated key
-//      (card-YYYY-MM-DD.jpg — unique per post so Meta never serves a
-//      stale cached image), publicly served from PUBLIC_IMAGE_BASE
+//   1. deploy out/card.jpg to a DEDICATED Netlify site under a dated
+//      filename (card-YYYY-MM-DD.jpg — unique per post so Meta never
+//      serves a stale cached image), publicly served from PUBLIC_IMAGE_BASE
 //   2. create a media container (image_url + caption)
 //   3. publish the container
 //
-// Secrets (IG_*, R2_*) come from env and are NEVER printed.
+// NOTE: a Netlify deploy REPLACES the site's content, so NETLIFY_SITE_ID must
+// point at a site used only for Harold cards (Instagram copies the image at
+// ingest time, so old card URLs going away is fine).
+//
+// Secrets (IG_*, NETLIFY_*) come from env and are NEVER printed.
 import { readFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
 
 const GRAPH = process.env.IG_GRAPH_BASE || "https://graph.facebook.com/v21.0";
+const NETLIFY_API = process.env.NETLIFY_API_BASE || "https://api.netlify.com/api/v1";
 
 function requireEnv(name) {
   const v = process.env[name];
@@ -18,49 +24,77 @@ function requireEnv(name) {
   return v;
 }
 
-/** Remote object key: dated so every post gets a fresh URL. */
+/** Remote filename: dated so every post gets a fresh URL. */
 export function remoteKey(date = new Date()) {
   const d = date.toISOString().slice(0, 10);
   return `card-${d}.jpg`;
 }
 
-/** Public URL for a key under PUBLIC_IMAGE_BASE (r2.dev URL or custom domain). */
+/** Public URL for a key under PUBLIC_IMAGE_BASE (the Harold site's URL). */
 export function publicImageUrl(key) {
   const base = requireEnv("PUBLIC_IMAGE_BASE").replace(/\/+$/, "");
   return `${base}/${key}`;
 }
 
+async function netlify(pathname, { method = "GET", token, body, contentType } = {}) {
+  const res = await fetch(`${NETLIFY_API}${pathname}`, {
+    method,
+    headers: {
+      Authorization: `Bearer ${token}`,
+      ...(contentType ? { "Content-Type": contentType } : {}),
+    },
+    body,
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`publish: Netlify ${method} ${pathname} failed ${res.status} ${text.slice(0, 200)}`);
+  }
+  return res.json();
+}
+
 /**
- * Upload the local JPEG to Cloudflare R2 (S3-compatible API) and return its
- * public URL. Requires R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY,
- * R2_BUCKET, and PUBLIC_IMAGE_BASE.
+ * Deploy the local JPEG to the dedicated Netlify site and return its public
+ * URL. Uses Netlify's file-digest deploy API: announce the file's SHA-1,
+ * upload the bytes, then wait for the deploy to go live.
+ * Requires NETLIFY_AUTH_TOKEN, NETLIFY_SITE_ID, PUBLIC_IMAGE_BASE.
  */
 export async function uploadPublicImage(localPath, key = remoteKey()) {
-  const accountId = requireEnv("R2_ACCOUNT_ID");
-  const bucket = requireEnv("R2_BUCKET");
+  const token = requireEnv("NETLIFY_AUTH_TOKEN");
+  const siteId = requireEnv("NETLIFY_SITE_ID");
   const url = publicImageUrl(key); // validate PUBLIC_IMAGE_BASE before uploading
 
-  const { S3Client, PutObjectCommand } = await import("@aws-sdk/client-s3");
-  const s3 = new S3Client({
-    region: "auto",
-    endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
-    credentials: {
-      accessKeyId: requireEnv("R2_ACCESS_KEY_ID"),
-      secretAccessKey: requireEnv("R2_SECRET_ACCESS_KEY"),
-    },
+  const bytes = await readFile(localPath);
+  const sha1 = createHash("sha1").update(bytes).digest("hex");
+
+  // 1) announce the deploy's file manifest
+  const deploy = await netlify(`/sites/${siteId}/deploys`, {
+    method: "POST",
+    token,
+    contentType: "application/json",
+    body: JSON.stringify({ files: { [`/${key}`]: sha1 } }),
   });
 
-  const bytes = await readFile(localPath);
-  await s3.send(
-    new PutObjectCommand({
-      Bucket: bucket,
-      Key: key,
-      Body: bytes,
-      ContentType: "image/jpeg",
-      CacheControl: "public, max-age=31536000, immutable",
-    })
-  );
-  console.log(`[publish] uploaded ${key} to R2 bucket ${bucket}`);
+  // 2) upload the file bytes if Netlify doesn't already have this digest
+  if ((deploy.required || []).includes(sha1)) {
+    await netlify(`/deploys/${deploy.id}/files/${key}`, {
+      method: "PUT",
+      token,
+      contentType: "application/octet-stream",
+      body: bytes,
+    });
+  }
+
+  // 3) wait for the deploy to go live (usually a few seconds)
+  const deadline = Date.now() + 120_000;
+  for (;;) {
+    const d = await netlify(`/deploys/${deploy.id}`, { token });
+    if (d.state === "ready") break;
+    if (d.state === "error") throw new Error("publish: Netlify deploy errored");
+    if (Date.now() > deadline) throw new Error("publish: Netlify deploy timed out");
+    await new Promise((r) => setTimeout(r, 2000));
+  }
+
+  console.log(`[publish] deployed ${key} to Netlify site ${siteId}`);
   return url;
 }
 
