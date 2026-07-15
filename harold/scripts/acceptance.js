@@ -18,7 +18,7 @@ const r = await render({
   heroImage: heroPath,
   headline: "EGYPT: THE WINDIEST COUNTRY STARTS PROJECT TO POWER 6 MILLION HOMES",
   // ONE contiguous highlight (the outcome), per the single-span rule.
-  orangeWords: ["6 MILLION HOMES"],
+  orangeWords: ["POWER 6 MILLION HOMES"],
   out: outPath,
 });
 

@@ -105,12 +105,12 @@ same inputs produce a byte-stable JPEG.
 
 ## Editorial (`src/editorial.js`)
 
-`pickOrangeWords(headline)` chooses **one contiguous span** (1–3 adjacent words) that carries the
-good-news punch — the outcome or subject (a number + what it counts, a superlative, the hopeful
-payoff) — and returns the **exact verbatim substring** to wrap. The highlight is always a single
-run, never two separate spots. It's an LLM call (Anthropic, temperature 0) with a tight prompt; if
-no API key is set it falls back to a transparent heuristic (number-led outcome → superlative →
-longest content word). Every choice is logged.
+`pickOrangeWords(headline)` chooses **one contiguous span** (1–4 adjacent words) that carries the
+good-news punch — the outcome (verb + number + what it counts, a superlative, the hopeful payoff;
+e.g. "POWER 6 MILLION HOMES") — and returns the **exact verbatim substring** to wrap. The highlight
+is always a single run, never two separate spots. It's an LLM call (Anthropic, temperature 0) with
+a tight prompt; if no API key is set it falls back to a transparent heuristic (number outcome →
+superlative → longest content word). Every choice is logged.
 
 ## Publishing to Instagram (`src/publish.js`)
 

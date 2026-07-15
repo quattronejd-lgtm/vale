@@ -16,27 +16,29 @@ export function pickArticle(items) {
 // ---- orange-word selection ----
 
 // THE HIGHLIGHT RULE: the orange is ONE contiguous span of the phrase — a single
-// run of 1–3 adjacent words — never two separate spots. pickOrangeWords() always
+// run of 1–4 adjacent words — never two separate spots. pickOrangeWords() always
 // returns a one-element array holding that single verbatim span.
+// Reference taste: "POWER 6 MILLION HOMES" (verb + number + what it counts).
 
 const PROMPT = (headline) => `You are the art director for the Good News Network Instagram feed.
 On each card, exactly ONE contiguous span of the headline is recolored orange to carry the
-"good news" punch — usually the OUTCOME or the SUBJECT (a number + what it counts, a superlative,
-or the hopeful payoff). The highlight is one unbroken run of words — NEVER two separate spots.
+"good news" punch — usually the OUTCOME (verb + number + what it counts, a superlative, or the
+hopeful payoff). The highlight is one unbroken run of words — NEVER two separate spots.
 
 Rules:
 - Return exactly ONE string, copied verbatim from the headline (same casing, contiguous words).
-- The span is 1 to 3 adjacent words.
+- The span is 1 to 4 adjacent words.
 - Never start/end on filler ("THE", "A", "TO", "OF", "AND").
-- Prefer the most emotionally resonant / newsworthy run (e.g. "6 MILLION HOMES", "WINDIEST").
+- Prefer the most emotionally resonant / newsworthy run (e.g. "POWER 6 MILLION HOMES", "WINDIEST").
 
 Headline: ${JSON.stringify(headline)}
 
-Respond with ONLY a JSON array containing that single string, e.g. ["6 MILLION HOMES"]. No prose.`;
+Respond with ONLY a JSON array containing that single string, e.g. ["POWER 6 MILLION HOMES"]. No prose.`;
 
 /**
- * Heuristic fallback → ONE contiguous span. Priority:
- *   1. number-led outcome (the number + up to 2 following words)
+ * Heuristic fallback → ONE contiguous span (max 4 words). Priority:
+ *   1. number outcome: preceding verb + number + up to 2 following words
+ *      (e.g. "POWER 6 MILLION HOMES")
  *   2. superlative (…EST)
  *   3. longest content word
  */
@@ -45,11 +47,17 @@ export function pickOrangeWordsHeuristic(headline) {
   const strip = (s) => s.replace(/[.,:;!?]+$/, "");
   const stop = new Set(["THE", "A", "AN", "TO", "OF", "AND", "IN", "ON", "FOR", "WITH", "AS", "AT", "BY", "IT", "IS"]);
 
-  // 1) number-led outcome: number + up to 2 following words (e.g. "6 MILLION HOMES")
+  // 1) number outcome: include the word before the number when it's a content
+  //    word (usually the verb — POWER, PLANT, SAVE), then the number + up to
+  //    2 following words. Longest verbatim span wins, capped at 4 words.
   const numIdx = words.findIndex((w) => /^\$?\d[\d,.]*$/.test(strip(w)));
   if (numIdx !== -1) {
-    for (const n of [3, 2, 1]) {
-      const span = strip(words.slice(numIdx, numIdx + n).join(" "));
+    const prev = numIdx > 0 ? strip(words[numIdx - 1]) : "";
+    const hasVerb = prev && !stop.has(prev.toUpperCase()) && !/[.,:;!?]$/.test(words[numIdx - 1]);
+    const start = hasVerb ? numIdx - 1 : numIdx;
+    const maxLen = Math.min(4, words.length - start);
+    for (let n = maxLen; n >= 1; n--) {
+      const span = strip(words.slice(start, start + n).join(" "));
       if (span && headline.includes(span)) return [span];
     }
   }
