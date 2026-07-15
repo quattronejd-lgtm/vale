@@ -121,19 +121,23 @@ superlative → longest content word). Every choice is logged.
 ## Publishing to Instagram (`src/publish.js`)
 
 The Graph API can **only ingest a PUBLIC image URL** — it cannot accept a local file or upload.
-So the flow is:
+Harold uses **Cloudflare R2** for the public hosting:
 
-1. **Host the image publicly.** After render, `out/card.jpg` must be reachable at a public URL.
-   Set `PUBLIC_IMAGE_BASE` to a public bucket/site (S3, Cloudflare R2, Netlify, …). Two ways to
-   get the file there:
-   - Set `PUBLIC_IMAGE_PUT_URL` to a presigned PUT URL — Harold uploads the bytes itself.
-   - Or mirror `out/` to `PUBLIC_IMAGE_BASE` with your own sync (e.g. `aws s3 cp`, `rclone`,
-     a Netlify deploy). Harold then just references `PUBLIC_IMAGE_BASE/card.jpg`.
+1. **Upload to R2.** After render, Harold uploads the JPEG to your R2 bucket via the
+   S3-compatible API under a **dated key** (`card-YYYY-MM-DD.jpg`) — unique per post, so Meta's
+   URL cache can never serve a stale card. The bucket is publicly served at `PUBLIC_IMAGE_BASE`
+   (its `r2.dev` URL or a custom domain).
 2. **Create a media container** — `POST /{IG_USER_ID}/media` with `image_url` + `caption`.
 3. **Publish** — `POST /{IG_USER_ID}/media_publish` with the returned `creation_id`.
 
-Secrets `IG_USER_ID` and `IG_ACCESS_TOKEN` are read from env and **never printed**. You need an
-Instagram Business/Creator account linked to a Facebook Page and a long-lived access token with
+R2 setup (once, ~10 min): Cloudflare dashboard → R2 → Create bucket (e.g. `harold-cards`) →
+Settings → enable public access (note the `pub-….r2.dev` URL) → back on the R2 overview page,
+create an API token with Object Read & Write scoped to the bucket. Fill `R2_ACCOUNT_ID`,
+`R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET`, and `PUBLIC_IMAGE_BASE` in `.env`.
+One ~130 KB card/day stays comfortably inside R2's free tier, and R2 has no egress fees.
+
+Secrets (`IG_*`, `R2_*`) are read from env and **never printed**. You need an Instagram
+Business/Creator account linked to a Facebook Page and a long-lived access token with
 `instagram_content_publish` permissions.
 
 ## Scheduling

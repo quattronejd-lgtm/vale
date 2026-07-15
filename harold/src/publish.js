@@ -1,13 +1,14 @@
 // publish.js — post the rendered JPEG to Instagram via the Graph API.
 //
 // The Graph API can only ingest a PUBLIC image URL, so the flow is:
-//   1. make out/card.jpg reachable at a public URL (PUBLIC_IMAGE_BASE)
+//   1. upload out/card.jpg to Cloudflare R2 under a dated key
+//      (card-YYYY-MM-DD.jpg — unique per post so Meta never serves a
+//      stale cached image), publicly served from PUBLIC_IMAGE_BASE
 //   2. create a media container (image_url + caption)
 //   3. publish the container
 //
-// Secrets (IG_USER_ID, IG_ACCESS_TOKEN) come from env and are NEVER printed.
+// Secrets (IG_*, R2_*) come from env and are NEVER printed.
 import { readFile } from "node:fs/promises";
-import path from "node:path";
 
 const GRAPH = process.env.IG_GRAPH_BASE || "https://graph.facebook.com/v21.0";
 
@@ -17,41 +18,49 @@ function requireEnv(name) {
   return v;
 }
 
-/**
- * Derive the public URL where the image will be served. PUBLIC_IMAGE_BASE points
- * at a public bucket/host (S3, R2, Netlify, …) that mirrors out/. The filename is
- * appended. See README for how to wire the actual sync/upload for your host.
- */
-export function publicImageUrl(localPath) {
+/** Remote object key: dated so every post gets a fresh URL. */
+export function remoteKey(date = new Date()) {
+  const d = date.toISOString().slice(0, 10);
+  return `card-${d}.jpg`;
+}
+
+/** Public URL for a key under PUBLIC_IMAGE_BASE (r2.dev URL or custom domain). */
+export function publicImageUrl(key) {
   const base = requireEnv("PUBLIC_IMAGE_BASE").replace(/\/+$/, "");
-  return `${base}/${path.basename(localPath)}`;
+  return `${base}/${key}`;
 }
 
 /**
- * Make the local JPEG publicly reachable and return its public URL.
- * Two supported paths:
- *   - PUBLIC_IMAGE_PUT_URL set → HTTP PUT the bytes there (e.g. a presigned URL),
- *     then serve from PUBLIC_IMAGE_BASE.
- *   - otherwise → assume an external process already mirrors out/ to
- *     PUBLIC_IMAGE_BASE (documented in README); just return the derived URL.
+ * Upload the local JPEG to Cloudflare R2 (S3-compatible API) and return its
+ * public URL. Requires R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY,
+ * R2_BUCKET, and PUBLIC_IMAGE_BASE.
  */
-export async function uploadPublicImage(localPath) {
-  const url = publicImageUrl(localPath);
-  const putUrl = process.env.PUBLIC_IMAGE_PUT_URL;
-  if (putUrl) {
-    const bytes = await readFile(localPath);
-    const res = await fetch(putUrl, {
-      method: "PUT",
-      headers: { "Content-Type": "image/jpeg" },
-      body: bytes,
-    });
-    if (!res.ok) {
-      throw new Error(`publish: image PUT failed ${res.status}`);
-    }
-    console.log("[publish] uploaded image to public host");
-  } else {
-    console.log("[publish] assuming out/ is mirrored to PUBLIC_IMAGE_BASE");
-  }
+export async function uploadPublicImage(localPath, key = remoteKey()) {
+  const accountId = requireEnv("R2_ACCOUNT_ID");
+  const bucket = requireEnv("R2_BUCKET");
+  const url = publicImageUrl(key); // validate PUBLIC_IMAGE_BASE before uploading
+
+  const { S3Client, PutObjectCommand } = await import("@aws-sdk/client-s3");
+  const s3 = new S3Client({
+    region: "auto",
+    endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
+    credentials: {
+      accessKeyId: requireEnv("R2_ACCESS_KEY_ID"),
+      secretAccessKey: requireEnv("R2_SECRET_ACCESS_KEY"),
+    },
+  });
+
+  const bytes = await readFile(localPath);
+  await s3.send(
+    new PutObjectCommand({
+      Bucket: bucket,
+      Key: key,
+      Body: bytes,
+      ContentType: "image/jpeg",
+      CacheControl: "public, max-age=31536000, immutable",
+    })
+  );
+  console.log(`[publish] uploaded ${key} to R2 bucket ${bucket}`);
   return url;
 }
 
