@@ -15,7 +15,9 @@ import path from "node:path";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-export const DEFAULT_FEED = "https://www.goodnewsnetwork.org/feed/";
+// HAROLD_FEED_URL overrides the feed for staging/testing.
+export const DEFAULT_FEED =
+  process.env.HAROLD_FEED_URL || "https://www.goodnewsnetwork.org/feed/";
 export const DEFAULT_LEDGER = path.resolve(__dirname, "../data/posted.json");
 
 const parser = new Parser({

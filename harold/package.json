@@ -10,7 +10,8 @@
   "scripts": {
     "start": "node src/run.js",
     "dry-run": "node src/run.js --dry-run",
-    "acceptance": "node scripts/acceptance.js"
+    "acceptance": "node scripts/acceptance.js",
+    "e2e": "node scripts/e2e-local.js"
   },
   "dependencies": {
     "playwright": "^1.61.1",

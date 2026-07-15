@@ -63,6 +63,12 @@ npm run acceptance          # renders out/egypt.jpg
 Headline `EGYPT: THE WINDIEST COUNTRY STARTS PROJECT TO POWER 6 MILLION HOMES`,
 with `WINDIEST` and `POWER 6 MILLION` in orange.
 
+## Local end-to-end test
+
+`npm run e2e` proves the whole chain without external network: it serves a mock GNN feed on
+localhost, then runs fetch (RSS + hero resolution) → editorial (single-span rule) → render
+(1080×1350 JPEG) → caption, and verifies the posted.json ledger prevents repeats.
+
 ## Running the pipeline
 
 **Dry-run is the default — nothing is posted unless you pass `--live`.**
