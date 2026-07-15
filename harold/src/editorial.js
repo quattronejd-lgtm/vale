@@ -161,20 +161,83 @@ export async function pickOrangeWords(headline) {
 }
 
 // ---- caption ----
+//
+// THE COPY CONSTITUTION (approved 2026-07-15, Joe):
+//   1. Complete sentences only — the blurb NEVER cuts off mid-thought,
+//      never ends in "…".
+//   2. 1–2 sentences, ~120–280 characters. Lead with the human hook (who
+//      it happened to / why it feels good), not the mechanics.
+//   3. Warm, plain, conversational voice. No clickbait, no ALL-CAPS words,
+//      no stacked exclamation marks, no "you won't believe".
+//   4. No emojis in the blurb (the 🔗 CTA line is the caption's only emoji)
+//      and no hashtags outside the fixed tag block.
+//   5. Don't repeat the headline verbatim — the blurb adds, it doesn't echo.
+//   6. Structure is fixed: headline → blurb → 🔗 link-in-bio CTA → hashtags.
 
 const HASHTAGS = "#goodnews #goodnewsnetwork #positivenews #hope #uplifting";
 
-/** Build the Instagram caption: headline + blurb + link-in-bio nudge + hashtags. */
-export function writeCaption({ title, excerpt }) {
-  const blurb = excerpt ? `\n\n${excerpt}` : "";
-  return `${title}${blurb}\n\n🔗 Full story — link in bio.\n\n${HASHTAGS}`;
+const BLURB_PROMPT = (title, excerpt) => `You write Instagram captions for the Good News Network.
+Write the 1–2 sentence blurb that sits under this headline. Rules:
+- Complete sentences only; never trail off with an ellipsis.
+- 120–280 characters total. Lead with the human hook, not the mechanics.
+- Warm, plain, conversational. No clickbait, no ALL-CAPS words, no exclamation stacking.
+- No emojis, no hashtags, no links.
+- Do not repeat the headline verbatim — add to it.
+
+Headline: ${JSON.stringify(title)}
+Article excerpt: ${JSON.stringify(excerpt || "(none)")}
+
+Respond with ONLY the blurb text. No quotes, no prose about the task.`;
+
+/** Fallback: the feed excerpt, guaranteed to end on a sentence boundary. */
+function sentenceSafe(text = "") {
+  const t = text.trim();
+  if (!t || /[.!?]["'”’]?$/.test(t)) return t;
+  // drop the trailing partial sentence (and any dangling "…")
+  const cut = t.replace(/…$/, "").match(/^[\s\S]*[.!?]["'”’]?(?=\s|$)/);
+  return cut ? cut[0].trim() : "";
+}
+
+/** Write the blurb per the copy constitution. LLM when available, else the sentence-safe excerpt. */
+export async function writeBlurb({ title, excerpt }) {
+  const key = (process.env.ANTHROPIC_API_KEY || "").replace(/\s+/g, "");
+  if (key) {
+    try {
+      const { default: Anthropic } = await import("@anthropic-ai/sdk");
+      const client = new Anthropic({ apiKey: key });
+      const msg = await client.messages.create({
+        model: ANTHROPIC_MODEL,
+        max_tokens: 200,
+        temperature: 0,
+        messages: [{ role: "user", content: BLURB_PROMPT(title, excerpt) }],
+      });
+      const text = msg.content.map((b) => (b.type === "text" ? b.text : "")).join("").trim();
+      const blurb = sentenceSafe(text);
+      if (blurb) {
+        console.log(`[editorial] blurb (${ANTHROPIC_MODEL}): ${blurb}`);
+        return blurb;
+      }
+    } catch (err) {
+      console.warn(`[editorial] blurb LLM failed (${err.message}); using excerpt`);
+    }
+  }
+  const blurb = sentenceSafe(excerpt);
+  console.log(`[editorial] blurb (excerpt fallback): ${blurb || "(none)"}`);
+  return blurb;
+}
+
+/** Build the Instagram caption: headline → blurb → 🔗 CTA → hashtags. */
+export async function writeCaption(article) {
+  const blurb = await writeBlurb(article);
+  const blurbBlock = blurb ? `\n\n${blurb}` : "";
+  return `${article.title}${blurbBlock}\n\n🔗 Full story — link in bio.\n\n${HASHTAGS}`;
 }
 
 /** Convenience: run the editorial stage for one article. */
 export async function editorialize(article) {
   const headline = (article.title || "").toUpperCase();
   const orangeWords = await pickOrangeWords(headline);
-  const caption = writeCaption(article);
+  const caption = await writeCaption(article);
   return { headline, orangeWords, caption };
 }
 
