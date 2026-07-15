@@ -96,16 +96,18 @@ This is the signature — **approved 2026-07-15 and locked. Do not restyle.** Do
 - Background: article hero photo, `object-fit: cover`, full bleed.
 - Dark gradient scrim (transparent top → near-black bottom) for headline legibility.
 - GNN flower logo (white seed-of-life cluster in a ring), white on transparent, centered up top.
-- Headline: bottom-left, heavy condensed uppercase (Anton), **auto-fit** so 1–3 lines
-  always fill the safe box without overflow (`render.js` scales font-size down until it fits).
+- Headline: bottom-left, heavy uppercase (Lilita One, approved 2026-07-15; Anton kept bundled
+  as alternate), **auto-fit** so 1–3 lines always fill the safe box without overflow
+  (`render.js` scales font-size down until it fits).
 - Keywords: **one contiguous span** of the headline is wrapped in `<span class="kw">…</span>`
   and recolors to GNN orange — a single highlight, never two separate spots. The rest stay white.
 
 Two knobs, both in `card.css`:
 
-- `--headline-font` — the display face. Default **Anton** (bundled `template/fonts/Anton-Regular.woff2`).
-  To use GNN's licensed face: drop its `.woff2` in `template/fonts/`, update the one `@font-face`
-  `src`, and change the var. One-line swap.
+- `--headline-font` — the display face. Default **Lilita One** (bundled
+  `template/fonts/LilitaOne-Regular.woff2`; Anton also bundled as alternate). To use GNN's
+  licensed face: drop its `.woff2` in `template/fonts/`, update the one `@font-face` `src`,
+  and change the var. One-line swap.
 - `--gnn-orange` — the accent color for `.kw`. Placeholder is `#EA5B26`; **replace with GNN's exact hex.**
 
 Rendering is deterministic: the hero is inlined as a data URI and fonts are bundled, so the

@@ -169,7 +169,12 @@ export async function render({
         });
       }
       await document.fonts.ready;
-      await document.fonts.load('132px "Anton"');
+      // Force-load the headline face at display size before measuring.
+      const face = getComputedStyle(document.documentElement)
+        .getPropertyValue("--headline-font")
+        .split(",")[0]
+        .trim();
+      await document.fonts.load(`132px ${face}`);
     });
 
     const fontSize = await page.evaluate(fitHeadlineInPage);
