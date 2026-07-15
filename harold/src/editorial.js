@@ -16,63 +16,103 @@ export function pickArticle(items) {
 // ---- orange-word selection ----
 
 // THE HIGHLIGHT RULE: the orange is ONE contiguous span of the phrase — a single
-// run of 1–4 adjacent words — never two separate spots. pickOrangeWords() always
-// returns a one-element array holding that single verbatim span.
-// Reference taste: "POWER 6 MILLION HOMES" (verb + number + what it counts).
+// unbroken run of words, never two separate spots. Spans should be substantial:
+// 2–5 adjacent words (a single word only for a knockout superlative). Reference
+// taste: "POWER 6 MILLION HOMES", "LOWER RISKS OF LIVER CANCER".
+// pickOrangeWords() always returns a one-element array holding that verbatim span.
 
 const PROMPT = (headline) => `You are the art director for the Good News Network Instagram feed.
 On each card, exactly ONE contiguous span of the headline is recolored orange to carry the
-"good news" punch — usually the OUTCOME (verb + number + what it counts, a superlative, or the
-hopeful payoff). The highlight is one unbroken run of words — NEVER two separate spots.
+"good news" punch — the OUTCOME (verb + number + what it counts, the benefit, or the hopeful
+payoff). The highlight is one unbroken run of words — NEVER two separate spots.
 
 Rules:
 - Return exactly ONE string, copied verbatim from the headline (same casing, contiguous words).
-- The span is 1 to 4 adjacent words.
-- Never start/end on filler ("THE", "A", "TO", "OF", "AND").
-- Prefer the most emotionally resonant / newsworthy run (e.g. "POWER 6 MILLION HOMES", "WINDIEST").
+- The span is 2 to 5 adjacent words. A single word is allowed ONLY for a knockout superlative
+  (e.g. "WINDIEST").
+- Never start or end the span on filler ("THE", "A", "TO", "OF", "AND", "WITH").
+- Prefer the fullest emotionally resonant run: "POWER 6 MILLION HOMES" beats "6 MILLION";
+  "LOWER RISKS OF LIVER CANCER" beats "LOWER RISKS".
 
 Headline: ${JSON.stringify(headline)}
 
 Respond with ONLY a JSON array containing that single string, e.g. ["POWER 6 MILLION HOMES"]. No prose.`;
 
+const STOP_WORDS = new Set([
+  "THE", "A", "AN", "TO", "OF", "AND", "IN", "ON", "FOR", "WITH", "AS", "AT",
+  "BY", "IT", "IS", "ARE", "HAS", "HAVE", "THAT", "THIS", "AFTER", "FROM",
+]);
+
+// Words that usually open the "good news" payoff of a headline.
+const POWER_WORDS = new Set([
+  "LOWER", "LOWERS", "HIGHER", "BETTER", "MORE", "LESS", "NEW", "FIRST",
+  "RECORD", "HISTORIC", "FREE", "SAVES", "SAVED", "SAVE", "WINS", "WON",
+  "CURES", "CURED", "HEALS", "HEALED", "RESCUES", "RESCUED", "RECOVERS",
+  "BREAKTHROUGH", "DISCOVER", "DISCOVERS", "DISCOVERY", "REVIVES", "REVIVED",
+  "RESTORED", "RESTORES", "REVERSES", "REVERSED", "PROTECTS", "BOOSTS",
+]);
+
 /**
- * Heuristic fallback → ONE contiguous span (max 4 words). Priority:
- *   1. number outcome: preceding verb + number + up to 2 following words
- *      (e.g. "POWER 6 MILLION HOMES")
- *   2. superlative (…EST)
- *   3. longest content word
+ * Heuristic fallback → ONE contiguous span, 2–5 words (single word only as a
+ * last resort). Priority:
+ *   1. number outcome: preceding verb + number + following words
+ *      (e.g. "POWER 6 MILLION HOMES", "PLANTS 50 MILLION TREES")
+ *   2. superlative + what it describes (e.g. "FASTEST DOG")
+ *   3. power-word payoff (e.g. "LOWER RISKS OF LIVER CANCER")
+ *   4. longest content word
  */
 export function pickOrangeWordsHeuristic(headline) {
   const words = headline.split(/\s+/);
   const strip = (s) => s.replace(/[.,:;!?]+$/, "");
-  const stop = new Set(["THE", "A", "AN", "TO", "OF", "AND", "IN", "ON", "FOR", "WITH", "AS", "AT", "BY", "IT", "IS"]);
+  const clean = (s) => strip(s).toUpperCase();
+  const isStop = (w) => STOP_WORDS.has(clean(w));
+  const endsClause = (w) => /[.,:;!?]$/.test(w);
 
-  // 1) number outcome: include the word before the number when it's a content
-  //    word (usually the verb — POWER, PLANT, SAVE), then the number + up to
-  //    2 following words. Longest verbatim span wins, capped at 4 words.
+  // Build the longest verbatim span from `start`, up to `maxWords`, that
+  // doesn't cross punctuation and doesn't end on a stopword.
+  const spanFrom = (start, maxWords = 5) => {
+    let end = start;
+    for (let i = start; i < Math.min(words.length, start + maxWords); i++) {
+      end = i;
+      if (endsClause(words[i])) break;
+    }
+    // trim trailing stopwords
+    while (end > start && isStop(words[end])) end--;
+    for (let e = end; e >= start; e--) {
+      const span = strip(words.slice(start, e + 1).join(" "));
+      if (span && headline.includes(span)) return span;
+    }
+    return null;
+  };
+
+  // 1) number outcome: verb before the number (when it's a content word) +
+  //    number + what it counts.
   const numIdx = words.findIndex((w) => /^\$?\d[\d,.]*$/.test(strip(w)));
   if (numIdx !== -1) {
-    const prev = numIdx > 0 ? strip(words[numIdx - 1]) : "";
-    const hasVerb = prev && !stop.has(prev.toUpperCase()) && !/[.,:;!?]$/.test(words[numIdx - 1]);
-    const start = hasVerb ? numIdx - 1 : numIdx;
-    const maxLen = Math.min(4, words.length - start);
-    for (let n = maxLen; n >= 1; n--) {
-      const span = strip(words.slice(start, start + n).join(" "));
-      if (span && headline.includes(span)) return [span];
-    }
+    const prev = numIdx > 0 ? words[numIdx - 1] : "";
+    const hasVerb = prev && !isStop(prev) && !endsClause(prev);
+    const span = spanFrom(hasVerb ? numIdx - 1 : numIdx);
+    if (span) return [span];
   }
 
-  // 2) superlative (WINDIEST, BIGGEST…)
-  const sup = words.find((w) => /[A-Z]{3,}EST$/i.test(strip(w)));
-  if (sup) {
-    const s = strip(sup);
-    if (headline.includes(s)) return [s];
+  // 2) superlative + what it describes (FASTEST DOG, WINDIEST COUNTRY)
+  const supIdx = words.findIndex((w) => /[A-Z]{3,}EST$/i.test(strip(w)));
+  if (supIdx !== -1) {
+    const span = spanFrom(supIdx, 2);
+    if (span) return [span];
   }
 
-  // 3) longest content word
+  // 3) power-word payoff (LOWER RISKS OF LIVER CANCER)
+  const powIdx = words.findIndex((w) => POWER_WORDS.has(clean(w)));
+  if (powIdx !== -1) {
+    const span = spanFrom(powIdx);
+    if (span) return [span];
+  }
+
+  // 4) longest content word (last resort)
   const content = words
     .map((w) => w.replace(/[^A-Za-z0-9$]/g, ""))
-    .filter((w) => w.length >= 5 && !stop.has(w.toUpperCase()))
+    .filter((w) => w.length >= 5 && !STOP_WORDS.has(w.toUpperCase()))
     .sort((a, b) => b.length - a.length);
   if (content[0] && headline.includes(content[0])) return [content[0]];
 
