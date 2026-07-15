@@ -97,8 +97,8 @@ async function toDataURI(ref) {
 }
 
 // The auto-fit routine, injected into the page. Scales #headline down from a
-// large size until it fits the safe box (no width/height overflow, ≤ 5 lines),
-// so 1–5 lines always fill without spilling.
+// large size until it fits the safe box (no width/height overflow, ≤ 6 lines),
+// so 1–6 lines always fill without spilling.
 function fitHeadlineInPage() {
   const el = document.getElementById("headline");
   const box = document.getElementById("headline-wrap");
@@ -115,10 +115,10 @@ function fitHeadlineInPage() {
     // scaleY doesn't affect layout; account for the visual stretch here
     const overflowH = el.scrollHeight * STRETCH > maxHeight + 1;
     const lines = Math.round(el.scrollHeight / (size * lineHeight));
-    if (!overflowW && !overflowH && lines <= 5) break;
+    if (!overflowW && !overflowH && lines <= 6) break;
   }
   // approved taste: a hair smaller than the largest fit
-  size = Math.round(size * 0.98);
+  size = Math.round(size * 0.90);
   el.style.fontSize = size + "px";
   return size;
 }
