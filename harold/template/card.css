@@ -7,8 +7,11 @@
                      woff2). To swap in GNN's licensed face, drop
                      its .woff2 in template/fonts/ and change this
                      one @font-face src + this var.
-   --gnn-orange    : the single accent color used by .kw. The mock
-                     is ~#EA5B26 — replace with GNN's exact hex.
+   --gnn-orange    : top of the .kw accent gradient (~#EA5B26).
+   --gnn-gold      : bottom of the .kw accent gradient (~#F6A821).
+                     Amended 2026-07-15 (Joe): the keyword fill is a
+                     vertical orange→golden-yellow gradient, matching
+                     the GNN feed. Replace both with exact brand hexes.
    ============================================================ */
 
 @font-face {
@@ -23,6 +26,7 @@
 :root {
   --headline-font: "Anton", "Arial Narrow", sans-serif;
   --gnn-orange: #EA5B26;
+  --gnn-gold: #F6A821;
 
   --card-w: 1080px;
   --card-h: 1350px;
@@ -127,8 +131,18 @@ html, body {
   overflow-wrap: break-word;
 }
 
-/* The whole reason we code this instead of Canva:
-   only the .kw words recolor to GNN orange; everything else stays white. */
+/* The whole reason we code this instead of Canva: only the .kw span
+   recolors; everything else stays white. The fill is a left→right
+   orange→golden-yellow gradient (GNN feed style). box-decoration-break:
+   clone restarts the gradient on each wrapped line so every line of the
+   span grades left-orange to right-gold. */
 .headline .kw {
-  color: var(--gnn-orange);
+  background-image: linear-gradient(to right, var(--gnn-orange) 8%, var(--gnn-gold) 92%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  /* text-shadow would paint through transparent glyphs — remove it here */
+  text-shadow: none;
 }
