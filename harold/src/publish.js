@@ -18,10 +18,15 @@ import { createHash } from "node:crypto";
 const NETLIFY_API = process.env.NETLIFY_API_BASE || "https://api.netlify.com/api/v1";
 
 function requireEnv(name) {
-  // None of Harold's env values (tokens, ids, URLs) legitimately contain
-  // whitespace or quotes — strip them so paste artifacts can't corrupt them.
-  const v = (process.env[name] || "").replace(/[\s"']+/g, "");
+  // Harold's env values (tokens, ids, URLs) are always printable ASCII.
+  // Strip everything else — whitespace, quotes, and INVISIBLE unicode
+  // (zero-width spaces, BOMs) that copy/paste smuggles in undetectably.
+  const raw = process.env[name] || "";
+  const v = raw.replace(/[^\x21-\x7e]/g, "").replace(/["']/g, "");
   if (!v) throw new Error(`publish: missing env ${name}`);
+  if (v.length !== raw.length) {
+    console.log(`[publish] ${name}: scrubbed ${raw.length - v.length} non-ASCII/quote char(s) from value`);
+  }
   return v;
 }
 
