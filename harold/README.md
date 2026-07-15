@@ -82,7 +82,7 @@ node src/render.js "HEADLINE" "WORD1,WORD2" <heroUrlOrPath> out/card.jpg
 
 ## The template (`template/card.html` + `card.css`)
 
-This is the signature — **do not restyle once approved.** Downstream just fills it.
+This is the signature — **approved 2026-07-15 and locked. Do not restyle.** Downstream just fills it.
 
 - Canvas exactly **1080×1350**.
 - Background: article hero photo, `object-fit: cover`, full bleed.
