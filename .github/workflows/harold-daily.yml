@@ -2,11 +2,17 @@ name: Harold daily post
 
 on:
   schedule:
-    # 9:00am America/Chicago year-round. GitHub cron is UTC-only, so fire at
-    # both candidate hours (14:00 UTC = 9am CDT, 15:00 UTC = 9am CST) and let
-    # the timezone guard step run exactly one of them.
-    - cron: "0 14 * * *"
-    - cron: "0 15 * * *"
+    # Four posts a day: 9am, 12pm, 3pm, 6pm America/Chicago, year-round.
+    # GitHub cron is UTC-only, so fire at both CDT and CST candidates for
+    # each slot and let the timezone guard run exactly the right ones.
+    - cron: "0 14 * * *"   # 9am CDT
+    - cron: "0 15 * * *"   # 9am CST / 10am CDT (guard skips)
+    - cron: "0 17 * * *"   # 12pm CDT
+    - cron: "0 18 * * *"   # 12pm CST / 1pm CDT (guard skips)
+    - cron: "0 20 * * *"   # 3pm CDT
+    - cron: "0 21 * * *"   # 3pm CST / 4pm CDT (guard skips)
+    - cron: "0 23 * * *"   # 6pm CDT
+    - cron: "0 0 * * *"    # 6pm CST / 7pm CDT (guard skips)
   workflow_dispatch:
     inputs:
       mode:
@@ -42,19 +48,20 @@ jobs:
       NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
     steps:
-      - name: Timezone guard (only run the 9am America/Chicago firing)
+      - name: Timezone guard (post slots are 9am/12pm/3pm/6pm America/Chicago)
         id: guard
         working-directory: .
         run: |
+          HOUR="$(TZ=America/Chicago date +%H)"
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "run=true" >> "$GITHUB_OUTPUT"
             echo "Manual dispatch — running."
-          elif [ "$(TZ=America/Chicago date +%H)" = "09" ]; then
+          elif [ "$HOUR" = "09" ] || [ "$HOUR" = "12" ] || [ "$HOUR" = "15" ] || [ "$HOUR" = "18" ]; then
             echo "run=true" >> "$GITHUB_OUTPUT"
-            echo "It is 9am in Chicago — running."
+            echo "It is ${HOUR}:00 in Chicago — a post slot. Running."
           else
             echo "run=false" >> "$GITHUB_OUTPUT"
-            echo "Not 9am in Chicago (DST twin firing) — skipping."
+            echo "Chicago hour ${HOUR} is not a post slot (DST twin firing) — skipping."
           fi
 
       - uses: actions/checkout@v4
