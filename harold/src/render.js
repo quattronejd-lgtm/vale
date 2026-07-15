@@ -103,7 +103,7 @@ function fitHeadlineInPage() {
   const el = document.getElementById("headline");
   const box = document.getElementById("headline-wrap");
   const lineHeight = 0.92; // must match .headline line-height in card.css
-  const STRETCH = 1.3; // must match .headline scaleY in card.css
+  const STRETCH = 1.25; // must match .headline scaleY in card.css
   const MAX = 172;
   const MIN = 40;
   const maxHeight = box.clientHeight; // capped by max-height in CSS
