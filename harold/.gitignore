@@ -1,7 +1,6 @@
 node_modules/
 out/*
 !out/.gitkeep
-data/posted.json
 .env
 .env.*
 !.env.example

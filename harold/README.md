@@ -146,13 +146,29 @@ Business/Creator account linked to a Facebook Page and a long-lived access token
 
 ## Scheduling
 
-`deploy/harold.cron` runs the chain daily at **9:00am Central** (dry-run by default). Install with:
+**Primary: GitHub Actions** (`.github/workflows/harold-daily.yml`). Runs daily at **9:00am
+Central** in GitHub's cloud — no always-on machine needed. Details:
 
-```bash
-crontab deploy/harold.cron   # edit the absolute paths inside first
-```
+- **DST-proof**: fires at both 14:00 and 15:00 UTC; a timezone guard runs exactly the one that
+  is 9am in Chicago.
+- **Dry-run by default.** Scheduled runs only go live when the repo *variable* `HAROLD_LIVE`
+  is set to `true` (Settings → Secrets and variables → Actions → **Variables**). Delete or
+  change it to fall back to dry-run.
+- **Secrets** (Settings → Secrets and variables → Actions → **Secrets**): `IG_USER_ID`,
+  `IG_ACCESS_TOKEN`, `NETLIFY_AUTH_TOKEN`, optional `ANTHROPIC_API_KEY`. The Netlify site id
+  and public URL are plain config in the workflow file.
+- **Manual runs**: Actions tab → "Harold daily post" → Run workflow → pick `dry-run` or
+  `live`. Every run uploads the rendered card as an artifact — download it to eyeball the
+  card without any machine setup (this is the easiest way to do the dry-run approval).
+- **Ledger**: `data/posted.json` is committed to the repo; after each live post the workflow
+  commits the updated ledger back so articles never repeat across ephemeral runners.
+- GitHub disables schedules after ~60 days without repo activity; live runs keep the repo
+  active via ledger commits, but if Harold idles in dry-run for months, re-enable the
+  workflow from the Actions tab.
 
-Flip `--dry-run` to `--live` in the cron once you've approved the dry-run output.
+**Alternative: self-hosted cron** — `deploy/harold.cron` (daily 9am CT, dry-run by default).
+Install with `crontab deploy/harold.cron` after editing the absolute paths inside, and flip
+`--dry-run` to `--live` once a dry-run is approved.
 
 ## Guardrails
 
