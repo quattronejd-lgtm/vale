@@ -125,9 +125,9 @@ export function pickOrangeWordsHeuristic(headline) {
  * @returns {Promise<string[]>} a one-element array (or [] if nothing suitable)
  */
 export async function pickOrangeWords(headline) {
-  // trim() guards against stray whitespace/newlines from pasted secrets,
-  // which turn into invalid HTTP headers ("Connection error").
-  const key = (process.env.ANTHROPIC_API_KEY || "").trim();
+  // Strip ALL whitespace: stray newlines from pasted secrets turn into
+  // invalid HTTP headers ("Connection error"), including mid-string wraps.
+  const key = (process.env.ANTHROPIC_API_KEY || "").replace(/\s+/g, "");
   if (!key) {
     const picks = pickOrangeWordsHeuristic(headline);
     console.log(`[editorial] orange span (heuristic): ${JSON.stringify(picks)}`);

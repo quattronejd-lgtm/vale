@@ -19,7 +19,9 @@ const GRAPH = process.env.IG_GRAPH_BASE || "https://graph.facebook.com/v21.0";
 const NETLIFY_API = process.env.NETLIFY_API_BASE || "https://api.netlify.com/api/v1";
 
 function requireEnv(name) {
-  const v = (process.env[name] || "").trim();
+  // None of Harold's env values (tokens, ids, URLs) legitimately contain
+  // whitespace — strip it ALL so line-wrapped pastes can't corrupt them.
+  const v = (process.env[name] || "").replace(/\s+/g, "");
   if (!v) throw new Error(`publish: missing env ${name}`);
   return v;
 }
