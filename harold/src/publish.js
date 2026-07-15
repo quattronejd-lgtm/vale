@@ -19,8 +19,8 @@ const NETLIFY_API = process.env.NETLIFY_API_BASE || "https://api.netlify.com/api
 
 function requireEnv(name) {
   // None of Harold's env values (tokens, ids, URLs) legitimately contain
-  // whitespace — strip it ALL so line-wrapped pastes can't corrupt them.
-  const v = (process.env[name] || "").replace(/\s+/g, "");
+  // whitespace or quotes — strip them so paste artifacts can't corrupt them.
+  const v = (process.env[name] || "").replace(/[\s"']+/g, "");
   if (!v) throw new Error(`publish: missing env ${name}`);
   return v;
 }
@@ -59,7 +59,11 @@ async function igUserId() {
   const token = requireEnv("IG_ACCESS_TOKEN");
   const base = graphBase(token);
   const flavor = tokenFlavor(token);
-  console.log(`[publish] token flavor: ${flavor} (prefix ${token.slice(0, 4)}…) via ${new URL(base).host}`);
+  // prefix + length are safe to log (never the token itself); IGAA tokens
+  // are typically ~180+ chars — a short length means a truncated paste.
+  console.log(
+    `[publish] token flavor: ${flavor} (prefix ${token.slice(0, 4)}…, length ${token.length}) via ${new URL(base).host}`
+  );
 
   if (flavor === "instagram-login") {
     const res = await fetch(`${base}/me?fields=user_id,id&access_token=${encodeURIComponent(token)}`);
