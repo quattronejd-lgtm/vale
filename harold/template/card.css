@@ -102,8 +102,8 @@ html, body {
   top: 34px;
   left: 50%;
   transform: translateX(-50%);
-  width: 126px;
-  height: 126px;
+  width: 108px;
+  height: 108px;
   /* subtle shadow so the white logo stays legible over bright photos */
   filter: drop-shadow(0 2px 12px rgba(0, 0, 0, 0.5));
 }
