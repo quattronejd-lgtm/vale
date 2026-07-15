@@ -3,10 +3,11 @@
    APPROVED 2026-07-15 (Joe). Do not restyle. Downstream only
    fills content. Two sanctioned knobs remain:
 
-   --headline-font : the display face. Default "Anton" (bundled
-                     woff2). To swap in GNN's licensed face, drop
-                     its .woff2 in template/fonts/ and change this
-                     one @font-face src + this var.
+   --headline-font : the display face. Default "Lilita One"
+                     (bundled woff2; approved 2026-07-15). To swap in
+                     GNN's licensed face, drop its .woff2 in
+                     template/fonts/ and change one @font-face src +
+                     this var.
    --gnn-orange    : top of the .kw accent gradient (~#EA5B26).
    --gnn-gold      : bottom of the .kw accent gradient (~#F6A821).
                      Amended 2026-07-15 (Joe): the keyword fill is a
@@ -15,16 +16,26 @@
    ============================================================ */
 
 @font-face {
-  font-family: "Anton";
+  font-family: "Lilita One";
   font-style: normal;
   font-weight: 400;
   font-display: block;
   /* SWAP POINT: point this at GNN's licensed .woff2 to rebrand. */
+  src: url("fonts/LilitaOne-Regular.woff2") format("woff2");
+}
+
+/* Alternate face kept bundled (previous default). */
+@font-face {
+  font-family: "Anton";
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
   src: url("fonts/Anton-Regular.woff2") format("woff2");
 }
 
 :root {
-  --headline-font: "Anton", "Arial Narrow", sans-serif;
+  /* Lilita One approved 2026-07-15 (Joe) — matches the GNN feed face. */
+  --headline-font: "Lilita One", "Anton", "Arial Narrow", sans-serif;
   --gnn-orange: #EA5B26;
   --gnn-gold: #F6A821;
 
