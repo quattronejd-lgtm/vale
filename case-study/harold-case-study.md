@@ -83,6 +83,28 @@ account. It has posted 4 times a day since, unattended.
 
 ---
 
+## Why it matters (the supply & demand thesis — Joe, video 1)
+
+Content distribution is a supply-and-demand market. To get what you want from
+a platform — reach and engagement — you give the platform what it wants:
+**supply**. Instagram cannot keep users on-platform by bottlenecking content
+creation on its own taste and judgment; it has to incentivize makers, and the
+currency it pays in is **distribution**. Most brands lose that exchange on
+consistency, not quality — the feed is hungry every day; the team isn't.
+An agent doesn't have that problem. *Harold never misses a payday.*
+
+This is what elevates the piece from a build flex to a strategy argument:
+Harold is a supply engine, and supply is the price of reach.
+
+## What's next (the roadmap — Joe, video 2)
+
+Turn the machine on Joe's own brand: the already-written book → an agent
+serializes it into Substack articles → Harold transcreates each article into
+Meta posts (Instagram + Facebook). One source, every platform, on schedule.
+Same operating pattern: **direct → approve → run.** Publishing this roadmap
+publicly (carousel slide 09) creates accountability and a follow-hook for the
+cohort funnel.
+
 ## Teaching moments (cohort version — the transferable lessons)
 
 1. **Lock the template early.** The signature look was approved in 16 minutes
@@ -141,8 +163,10 @@ thesis. Draft angle to react to:]
 | The PR list as an image ("24 PRs in 24 hours") | folded into carousel slides 03–04 | ✔ |
 | Screenshot of the live Instagram grid | Joe's screenshot (received 2026-07-16; keeper-grid crop still useful) | partial |
 | Architecture diagram (fetch → editorial → render → publish) | repo README | needs QB branding |
-| **Field Notes carousel, 8 slides, QB branding** | `case-study/carousel/harold-carousel-*.png` | **✔ done** |
-| 3-cuts copy (video / X thread / LinkedIn) | `case-study/harold-copy-3cuts.md` | **✔ done** |
+| **Field Notes carousel, 10 slides, QB branding** | `case-study/carousel/harold-carousel-*.png` | **✔ done** |
+| **LinkedIn document PDF (one slide per page)** | `case-study/carousel/harold-carousel-LinkedIn.pdf` | **✔ done** |
+| 3-cuts copy (2 videos / X thread / LinkedIn) | `case-study/harold-copy-3cuts.md` | **✔ done** |
+| Joe's recorded videos ×2 (supply/demand + roadmap) | Joe's Drive; theses captured in the sections above | content captured |
 
 ---
 

@@ -26,5 +26,19 @@ const htmlPath = path.join(dir, "harold-carousel.html");
     await slides[i].screenshot({ path: out });
     console.log("wrote", out);
   }
+
+  // LinkedIn document upload wants a single PDF, one slide per page.
+  await page.addStyleTag({
+    content: "body{background:none;margin:0;} .slide{page-break-after:always;} .slide:last-child{page-break-after:auto;}",
+  });
+  const pdfOut = path.join(dir, "harold-carousel-LinkedIn.pdf");
+  await page.pdf({
+    path: pdfOut,
+    width: "1080px",
+    height: "1350px",
+    printBackground: true,
+    margin: { top: 0, bottom: 0, left: 0, right: 0 },
+  });
+  console.log("wrote", pdfOut);
   await browser.close();
 })();
