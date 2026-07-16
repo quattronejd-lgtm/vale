@@ -85,9 +85,14 @@ body{background:#33313a;}
 .strike{position:relative;display:inline-block;}
 .strike:after{content:"";position:absolute;left:-4px;right:-4px;top:52%;height:5px;background:var(--rose);transform:rotate(-1.4deg);}
 
-/* signature (close card) */
-@font-face{font-family:'Caveat';font-style:normal;font-weight:600;src:url('fonts/caveat.woff2') format('woff2');}
-.sig{font-family:'Caveat',cursive;font-weight:600;font-size:74px;color:var(--ink);line-height:1;transform:rotate(-2.2deg);margin:2px 0 10px 2px;}
+/* signed-by ink card (close card) — mirrors QB sign-off component */
+.signcard{position:relative;border:1.5px solid var(--line);border-radius:18px;background:var(--paper);padding:40px 48px 34px 60px;overflow:hidden;}
+.signcard .inkbar{position:absolute;left:14px;top:16px;bottom:16px;width:7px;border-radius:4px;background:linear-gradient(180deg,#7860C0 0%,#48A8A8 55%,#30C090 100%);}
+.signcard .slab{font-family:var(--sans);font-weight:500;font-size:23px;color:var(--muted);}
+.signcard .sigwrap{margin:10px 0 6px;}
+.signcard .shair{height:1.5px;background:var(--line);margin:18px 0 20px;}
+.signcard .eid{font-family:var(--mono);font-weight:500;font-size:21px;letter-spacing:.05em;color:var(--muted);}
+.signcard .eid b{color:var(--body);font-weight:500;}
 </style>
 </head>
 <body>
@@ -235,10 +240,28 @@ body{background:#33313a;}
     <div class="content" style="justify-content:center;padding-bottom:30px;">
       <div class="h" style="font-size:82px;"><span class="grad">The human is the hero.</span><br>AI is the companion.</div>
       <div class="lead" style="font-size:37px;margin-top:38px;max-width:850px;">I decide what the brand says, how it looks, and what it's allowed to do alone. The system handles everything in between. That's building on my terms.</div>
-      <!-- signed sign-off motif -->
-      <div class="field" style="margin-top:64px;border-left:6px solid transparent;border-image:linear-gradient(180deg,#7860C0,#48A8A8,#30C090) 1;">
-        <div class="col" style="flex:1.4;"><div class="lab">Signed</div><div class="sig">Joe Quattrone</div><div class="val" style="font-size:24px;">Joe Quattrone <span style="color:var(--muted);font-weight:400;">/ Quattrone Brands</span></div></div>
-        <div class="col"><div class="lab">Envelope ID</div><div class="val" style="font-family:var(--mono);font-size:24px;">HAROLD-BUILD-0716</div></div>
+      <!-- signed-by ink card (QB sign-off component) -->
+      <div class="signcard" style="margin-top:64px;">
+        <div class="inkbar"></div>
+        <div class="slab">Signed by:</div>
+        <div class="sigwrap">
+          <!-- PLACEHOLDER signature artwork — replace this <svg> with Joe's real signature asset (PNG/SVG) -->
+          <svg width="620" height="150" viewBox="0 0 640 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <g stroke="#1A1330" stroke-width="4.2" stroke-linecap="round" fill="none">
+              <path d="M32 118 C 48 106, 72 102, 88 108"/>
+              <path d="M96 110 C 118 64, 148 38, 158 46 C 168 55, 140 108, 118 132 C 104 146, 92 142, 96 128"/>
+              <path d="M14 142 C 120 128, 300 104, 452 96 C 520 92, 578 90, 614 90"/>
+              <path d="M258 96 C 270 62, 284 44, 292 50 C 300 57, 288 92, 278 106"/>
+              <path d="M252 62 C 274 52, 300 48, 318 52"/>
+              <circle cx="336" cy="98" r="2.6" fill="#1A1330" stroke="none"/>
+              <path d="M418 96 C 410 62, 428 30, 462 30 C 500 30, 516 62, 506 96 C 498 124, 466 140, 442 126 C 424 116, 424 100, 434 92"/>
+              <path d="M492 112 C 510 128, 528 122, 544 104 C 556 92, 574 92, 588 98"/>
+              <path d="M462 138 C 490 134, 516 132, 538 132"/>
+            </g>
+          </svg>
+        </div>
+        <div class="shair"></div>
+        <div class="eid">Envelope ID: <b>HAROLD-BUILD-2C4F-0716</b></div>
       </div>
       <div class="note" style="margin-top:34px;font-size:23px;">See the build live: @goodnewsnetwork on Instagram · follow for more field notes on the Human OS.</div>
     </div>
