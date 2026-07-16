@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="stylesheet" href="fonts/fonts.css">
+<style>
+:root{
+  --paper:#FCFCFE;
+  --ink:#1A1330;
+  --body:#46425E;
+  --muted:#8A86A4;
+  --line:rgba(26,19,48,.13);
+  --teal:#13A493;
+  --rose:#C4464C;
+  --indigo:#262150;
+  --disp:'Inter Tight',system-ui,sans-serif;
+  --sans:'Hanken Grotesk','Helvetica Neue',Arial,sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-font-smoothing:antialiased;}
+body{background:#33313a;}
+.slide{
+  width:1080px;height:1350px;position:relative;overflow:hidden;
+  background:var(--paper);font-family:var(--sans);
+  display:flex;flex-direction:column;
+}
+.gbar{height:11px;width:100%;background:linear-gradient(90deg,#7860C0 0%,#48A8A8 55%,#30C090 100%);flex:0 0 auto;}
+.inner{flex:1;display:flex;flex-direction:column;padding:74px 84px 0;}
+
+/* header */
+.head{display:flex;justify-content:space-between;align-items:flex-start;}
+.wm{font-family:var(--disp);font-weight:800;font-size:42px;letter-spacing:-.02em;color:var(--ink);}
+.wm i{color:var(--teal);font-style:normal;}
+.hmeta{text-align:right;font-family:var(--mono);font-weight:500;font-size:20px;letter-spacing:.06em;color:var(--muted);line-height:1.5;}
+.hmeta b{color:var(--ink);font-weight:700;}
+.hair{height:1.5px;background:var(--line);width:100%;}
+.head-hair{margin:26px 0 0;}
+
+/* section marker */
+.sec{display:flex;align-items:center;gap:22px;margin:52px 0 46px;}
+.badge{width:46px;height:46px;border-radius:50%;border:2px solid var(--teal);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-weight:700;font-size:20px;color:var(--teal);flex:0 0 auto;}
+.seclab{font-family:var(--mono);font-weight:700;font-size:23px;letter-spacing:.14em;color:var(--ink);text-transform:uppercase;flex:0 0 auto;}
+.sec .ext{flex:1;height:1.5px;background:var(--line);}
+
+/* typography */
+.h{font-family:var(--disp);font-weight:800;letter-spacing:-.022em;color:var(--ink);line-height:1.04;}
+.grad{background:linear-gradient(90deg,#7860C0 0%,#48A8A8 55%,#30C090 100%);-webkit-background-clip:text;background-clip:text;color:transparent;}
+.lead{font-family:var(--sans);font-weight:400;color:var(--body);line-height:1.44;}
+.content{flex:1;display:flex;flex-direction:column;}
+
+/* footer */
+.foot{display:flex;justify-content:space-between;align-items:center;padding:0 84px;height:96px;flex:0 0 auto;border-top:1.5px solid var(--line);}
+.foot .fl{font-family:var(--mono);font-weight:500;font-size:19px;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;}
+.foot .fr{font-family:var(--mono);font-weight:700;font-size:19px;letter-spacing:.06em;color:var(--ink);}
+
+/* field container (cover + data) */
+.field{border:1.5px solid var(--line);border-radius:14px;display:flex;overflow:hidden;}
+.field .col{flex:1;padding:34px 34px;border-right:1.5px solid var(--line);}
+.field .col:last-child{border-right:none;}
+.field .lab{font-family:var(--mono);font-weight:500;font-size:18px;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;margin-bottom:16px;}
+.field .val{font-family:var(--sans);font-weight:600;font-size:29px;color:var(--ink);line-height:1.25;}
+.field .val.teal{color:var(--teal);}
+
+/* data rows */
+.rows{display:flex;flex-direction:column;gap:30px;margin-top:6px;}
+.row{display:flex;align-items:center;gap:24px;}
+.row .dot{width:22px;height:22px;border-radius:50%;flex:0 0 auto;}
+.row .lab{font-family:var(--mono);font-weight:500;font-size:27px;color:var(--ink);width:400px;flex:0 0 auto;}
+.row .redact{height:30px;border-radius:6px;background:repeating-linear-gradient(-45deg,#2A2440,#2A2440 9px,#3A3556 9px,#3A3556 18px);}
+.row .cnt{font-family:var(--mono);font-weight:700;font-size:38px;width:74px;flex:0 0 auto;text-align:right;color:var(--ink);}
+
+/* bar (grind) */
+.track{height:88px;width:100%;background:#ECEDF2;border-radius:8px;display:flex;overflow:hidden;}
+.fill{width:50%;background:var(--ink);display:flex;align-items:center;padding-left:32px;}
+.fill span{font-family:var(--mono);font-weight:700;font-size:25px;color:var(--paper);letter-spacing:.04em;}
+.cap{font-family:var(--mono);font-size:22px;color:var(--muted);margin-top:22px;letter-spacing:.03em;}
+
+/* loop steps */
+.steps{display:flex;flex-direction:column;gap:32px;}
+.step{display:flex;align-items:center;gap:24px;}
+.step .k{width:20px;height:20px;border-radius:50%;flex:0 0 auto;}
+.step .t{font-family:var(--sans);font-size:34px;font-weight:500;color:var(--ink);}
+.note{font-family:var(--mono);font-size:22px;color:var(--muted);letter-spacing:.03em;}
+
+.strike{position:relative;display:inline-block;}
+.strike:after{content:"";position:absolute;left:-4px;right:-4px;top:52%;height:5px;background:var(--rose);transform:rotate(-1.4deg);}
+</style>
+</head>
+<body>
+
+<!-- ============ S1 COVER ============ -->
+<section class="slide">
+  <div class="gbar"></div>
+  <div class="inner">
+    <div class="head">
+      <div class="wm">Quattrone<i>.</i></div>
+      <div class="hmeta">FIELD NOTES / THE BUILD<br><b>NO. 01 / 08</b></div>
+    </div>
+    <div class="hair head-hair"></div>
+    <div class="content" style="justify-content:center;padding-bottom:40px;">
+      <div class="h" style="font-size:86px;">My newest employee<br>shipped <span class="grad">in one day.</span></div>
+      <div class="lead" style="font-size:37px;margin-top:38px;max-width:860px;">Meet Harold: an autonomous publisher. It picks the story, designs the card, writes the caption, and posts — four times a day, without me.</div>
+      <div class="field" style="margin-top:64px;">
+        <div class="col"><div class="lab">Subject</div><div class="val">An AI employee</div></div>
+        <div class="col"><div class="lab">Method</div><div class="val teal">Direct &rarr; approve &rarr; run</div></div>
+        <div class="col"><div class="lab">By</div><div class="val">Joe Quattrone</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div class="fl">Quattrone Brands · Field Notes</div><div class="fr">01 / 08</div></div>
+</section>
+
+<!-- ============ S2 REFRAME ============ -->
+<section class="slide">
+  <div class="gbar"></div>
+  <div class="inner">
+    <div class="head"><div class="wm">Quattrone<i>.</i></div><div class="hmeta">FIELD NOTES / THE BUILD<br><b>NO. 02 / 08</b></div></div>
+    <div class="hair head-hair"></div>
+    <div class="sec"><div class="badge">01</div><div class="seclab">The Reframe</div><div class="ext"></div></div>
+    <div class="content">
+      <div class="h" style="font-size:74px;">I didn't prompt an app into existence.<br>I <span class="grad">directed one.</span></div>
+      <div class="lead" style="font-size:36px;margin-top:auto;margin-bottom:70px;max-width:880px;">I wrote no code and opened no design tool. My contribution was decisions: what it makes, how it looks, when it's allowed to act. The AI handled everything between my decisions.</div>
+    </div>
+  </div>
+  <div class="foot"><div class="fl">Quattrone Brands · Field Notes</div><div class="fr">02 / 08</div></div>
+</section>
+
+<!-- ============ S3 THE BUILD ============ -->
+<section class="slide">
+  <div class="gbar"></div>
+  <div class="inner">
+    <div class="head"><div class="wm">Quattrone<i>.</i></div><div class="hmeta">FIELD NOTES / THE BUILD<br><b>NO. 03 / 08</b></div></div>
+    <div class="hair head-hair"></div>
+    <div class="sec"><div class="badge">02</div><div class="seclab">The Timeline</div><div class="ext"></div></div>
+    <div class="content">
+      <div class="h" style="font-size:66px;">First commit to live post: <span class="grad">13 hours, 20 minutes.</span></div>
+      <div class="steps" style="margin-top:58px;">
+        <div class="step"><span class="k" style="background:#1A1330"></span><span class="t">6:57 pm — first commit.</span></div>
+        <div class="step"><span class="k" style="background:#C4464C"></span><span class="t">7:13 pm — signature card design approved, then locked.</span></div>
+        <div class="step"><span class="k" style="background:#262150"></span><span class="t">overnight — scheduled in the cloud. No machine of mine runs it.</span></div>
+        <div class="step"><span class="k" style="background:#13A493"></span><span class="t">8:16 am — first live post on a real Instagram account.</span></div>
+      </div>
+      <div class="note" style="margin-top:auto;margin-bottom:64px;font-size:25px;">24 pull requests merged in the first ~24 hours.</div>
+    </div>
+  </div>
+  <div class="foot"><div class="fl">Quattrone Brands · Field Notes</div><div class="fr">03 / 08</div></div>
+</section>
+
+<!-- ============ S4 THE GRIND ============ -->
+<section class="slide">
+  <div class="gbar"></div>
+  <div class="inner">
+    <div class="head"><div class="wm">Quattrone<i>.</i></div><div class="hmeta">FIELD NOTES / THE BUILD<br><b>NO. 04 / 08</b></div></div>
+    <div class="hair head-hair"></div>
+    <div class="sec"><div class="badge">03</div><div class="seclab">The Grind</div><div class="ext"></div></div>
+    <div class="content">
+      <div class="h" style="font-size:76px;">The messy middle <span class="grad">is the actual work.</span></div>
+      <div class="lead" style="font-size:36px;margin-top:38px;max-width:870px;">Five separate fixes just to get one API's tokens working — invisible characters, undocumented formats, the works. The AI hit every error, diagnosed it, and shipped the repair. I never opened the docs.</div>
+      <div style="margin-top:auto;margin-bottom:64px;">
+        <div class="track"><div class="fill" style="width:44%;"><span>5 PRS OF TOKEN PLUMBING</span></div></div>
+        <div class="cap">the part every AI-hype post leaves out</div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div class="fl">Quattrone Brands · Field Notes</div><div class="fr">04 / 08</div></div>
+</section>
+
+<!-- ============ S5 THE TASTE LOOP ============ -->
+<section class="slide">
+  <div class="gbar"></div>
+  <div class="inner">
+    <div class="head"><div class="wm">Quattrone<i>.</i></div><div class="hmeta">FIELD NOTES / THE BUILD<br><b>NO. 05 / 08</b></div></div>
+    <div class="hair head-hair"></div>
+    <div class="sec"><div class="badge">04</div><div class="seclab">The Taste Loop</div><div class="ext"></div></div>
+    <div class="content">
+      <div class="h" style="font-size:68px;">Some hours, my whole job was <span class="grad">&ldquo;the badge is too big.&rdquo;</span></div>
+      <div class="lead" style="font-size:34px;margin-top:36px;max-width:870px;">Five rounds of design notes, six pixels at a time. The AI was the hands. I was the eyes.</div>
+      <div class="rows" style="margin-top:52px;">
+        <div class="row"><span class="dot" style="background:var(--indigo)"></span><span class="lab">posted live, day one</span><span class="redact" style="width:440px"></span><span class="cnt">12</span></div>
+        <div class="row"><span class="dot" style="background:var(--teal)"></span><span class="lab">earned their spot</span><span class="redact" style="width:220px;background:rgba(19,164,147,.22)"></span><span class="cnt">6</span></div>
+        <div class="row"><span class="dot" style="background:var(--rose)"></span><span class="lab">pulled by the editor (me)</span><span class="redact" style="width:220px;background:rgba(196,70,76,.26)"></span><span class="cnt">6</span></div>
+      </div>
+      <div class="note" style="margin-top:auto;margin-bottom:60px;font-size:24px;">taste is still the human's job. that's the point.</div>
+    </div>
+  </div>
+  <div class="foot"><div class="fl">Quattrone Brands · Field Notes</div><div class="fr">05 / 08</div></div>
+</section>
+
+<!-- ============ S6 THE GUARDRAILS ============ -->
+<section class="slide">
+  <div class="gbar"></div>
+  <div class="inner">
+    <div class="head"><div class="wm">Quattrone<i>.</i></div><div class="hmeta">FIELD NOTES / THE BUILD<br><b>NO. 06 / 08</b></div></div>
+    <div class="hair head-hair"></div>
+    <div class="sec"><div class="badge">05</div><div class="seclab">The Guardrails</div><div class="ext"></div></div>
+    <div class="content">
+      <div class="h" style="font-size:68px;">A demo works when you watch it.<br><span class="grad">An employee works when you don't.</span></div>
+      <div class="steps" style="margin-top:58px;">
+        <div class="step"><span class="k" style="background:#1A1330"></span><span class="t">Dry-run by default — nothing posts without an approved preview.</span></div>
+        <div class="step"><span class="k" style="background:#C4464C"></span><span class="t">Quality gate — a bad photo can't ship an ugly card at 2 a.m.</span></div>
+        <div class="step"><span class="k" style="background:#13A493"></span><span class="t">Ledger — it remembers every post. It never repeats itself.</span></div>
+      </div>
+      <div class="note" style="margin-top:auto;margin-bottom:64px;font-size:25px;">autonomy is granted, never assumed.</div>
+    </div>
+  </div>
+  <div class="foot"><div class="fl">Quattrone Brands · Field Notes</div><div class="fr">06 / 08</div></div>
+</section>
+
+<!-- ============ S7 THE MATH ============ -->
+<section class="slide">
+  <div class="gbar"></div>
+  <div class="inner">
+    <div class="head"><div class="wm">Quattrone<i>.</i></div><div class="hmeta">FIELD NOTES / THE BUILD<br><b>NO. 07 / 08</b></div></div>
+    <div class="hair head-hair"></div>
+    <div class="sec"><div class="badge">06</div><div class="seclab">The Math People Skip</div><div class="ext"></div></div>
+    <div class="content">
+      <div class="h" style="font-size:96px;line-height:1;">Payroll: <span class="grad">&asymp; $0 a month.</span></div>
+      <div class="lead" style="font-size:36px;margin-top:44px;max-width:860px;">Four posts a day, on schedule, unattended, on free-tier infrastructure. My total investment: one day of direction and a few minutes of taste. The output compounds daily.</div>
+      <div class="h" style="font-size:44px;margin-top:auto;margin-bottom:66px;line-height:1.15;">Headcount scales linearly.<br><span class="grad">Systems compound.</span></div>
+    </div>
+  </div>
+  <div class="foot"><div class="fl">Quattrone Brands · Field Notes</div><div class="fr">07 / 08</div></div>
+</section>
+
+<!-- ============ S8 CLOSE / SIGNED SIGN-OFF ============ -->
+<section class="slide">
+  <div class="gbar"></div>
+  <div class="inner">
+    <div class="head"><div class="wm">Quattrone<i>.</i></div><div class="hmeta">FIELD NOTES / ON MY TERMS<br><b>NO. 08 / 08</b></div></div>
+    <div class="hair head-hair"></div>
+    <div class="content" style="justify-content:center;padding-bottom:30px;">
+      <div class="h" style="font-size:82px;"><span class="grad">The human is the hero.</span><br>AI is the companion.</div>
+      <div class="lead" style="font-size:37px;margin-top:38px;max-width:850px;">I decide what the brand says, how it looks, and what it's allowed to do alone. The system handles everything in between. That's building on my terms.</div>
+      <!-- signed sign-off motif -->
+      <div class="field" style="margin-top:64px;border-left:6px solid transparent;border-image:linear-gradient(180deg,#7860C0,#48A8A8,#30C090) 1;">
+        <div class="col" style="flex:1.4;"><div class="lab">Signed</div><div class="val">Joe Quattrone <span style="color:var(--muted);font-weight:400;">/ Quattrone Brands</span></div></div>
+        <div class="col"><div class="lab">Envelope ID</div><div class="val" style="font-family:var(--mono);font-size:24px;">HAROLD-BUILD-0716</div></div>
+      </div>
+      <div class="note" style="margin-top:34px;font-size:23px;">Follow for more field notes on the Human OS.</div>
+    </div>
+  </div>
+  <div class="foot"><div class="fl">Quattrone Brands · Field Notes</div><div class="fr">08 / 08</div></div>
+</section>
+
+</body>
+</html>

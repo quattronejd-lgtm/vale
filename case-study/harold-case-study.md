@@ -29,6 +29,7 @@ this is the "receipts included" backbone of the case study.
 | Automated daily scheduler live | July 15, 9:41am UTC | commit `9c8f614`→PR #2 |
 | **First live Instagram post** | July 15, 1:16pm UTC — **~13 hours 20 min after first commit** | posted.json ledger |
 | Live posts on day one | **12** (1:16pm – 11:39pm UTC) | posted.json ledger |
+| Posts kept after Joe's edit | **6** — Joe deliberately let posts run live to compare against the brand's existing feed, then pulled the ones that didn't earn their spot | Joe, 2026-07-16 |
 | Pull requests merged in ~24 hours | **24** | git merge history |
 | Total commits | ~76 | git history |
 | Manual design steps per post | **0** | architecture |
@@ -136,10 +137,12 @@ thesis. Draft angle to react to:]
 |-------|--------|--------|
 | The acceptance card (Egypt wind-farm reference) | render from repo (`npm run acceptance`) | ready to generate |
 | Template evolution strip (logo/badge iterations across PRs 17–21) | re-render card at each historical commit | ready to generate |
-| Timeline graphic (first commit → live in 13h 20m) | fact base above | needs QB branding |
-| The PR list as an image ("24 PRs in 24 hours") | git history | needs QB branding |
-| Screenshot of the live Instagram grid | Joe's screenshot | [SLOT: Joe] |
+| Timeline graphic (first commit → live in 13h 20m) | **done — carousel slide 03** | ✔ |
+| The PR list as an image ("24 PRs in 24 hours") | folded into carousel slides 03–04 | ✔ |
+| Screenshot of the live Instagram grid | Joe's screenshot (received 2026-07-16; keeper-grid crop still useful) | partial |
 | Architecture diagram (fetch → editorial → render → publish) | repo README | needs QB branding |
+| **Field Notes carousel, 8 slides, QB branding** | `case-study/carousel/harold-carousel-*.png` | **✔ done** |
+| 3-cuts copy (video / X thread / LinkedIn) | `case-study/harold-copy-3cuts.md` | **✔ done** |
 
 ---
 
