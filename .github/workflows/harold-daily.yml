@@ -49,20 +49,45 @@ jobs:
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
       PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
     steps:
-      - name: Timezone guard (post slots are 9am/12pm/3pm/6pm America/Chicago)
+      - name: DST-twin guard (delay-invariant — do not switch back to an hour check)
         id: guard
         working-directory: .
+        env:
+          SCHEDULE: ${{ github.event.schedule }}
         run: |
-          HOUR="$(TZ=America/Chicago date +%H)"
+          # GitHub's cron delay has been observed anywhere from a few minutes to
+          # 70+ minutes. A wall-clock "is it currently hour 9/12/15/18" check
+          # breaks once the delay crosses an hour boundary — a noon-slot run
+          # landing at 1:17pm reads as "not a slot" and self-skips (this is what
+          # happened to today's noon post). Fixed by keying off WHICH cron
+          # string fired (github.event.schedule) — that encodes the intended
+          # slot regardless of how late the run actually executes — and only
+          # checking the CURRENT DST offset to pick the active CDT/CST twin.
+          # DST offset only flips twice a year, so it can't be thrown off by a
+          # same-day scheduling delay the way an hour check can.
+          OFFSET="$(TZ=America/Chicago date +%z)"   # -0500 (CDT) or -0600 (CST)
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "run=true" >> "$GITHUB_OUTPUT"
             echo "Manual dispatch — running."
-          elif [ "$HOUR" = "09" ] || [ "$HOUR" = "12" ] || [ "$HOUR" = "15" ] || [ "$HOUR" = "18" ]; then
-            echo "run=true" >> "$GITHUB_OUTPUT"
-            echo "It is ${HOUR}:00 in Chicago — a post slot. Running."
           else
-            echo "run=false" >> "$GITHUB_OUTPUT"
-            echo "Chicago hour ${HOUR} is not a post slot (DST twin firing) — skipping."
+            case "$SCHEDULE" in
+              "7 14 * * *") EXPECT="-0500" ;;  # 9am CDT
+              "7 15 * * *") EXPECT="-0600" ;;  # 9am CST
+              "7 17 * * *") EXPECT="-0500" ;;  # 12pm CDT
+              "7 18 * * *") EXPECT="-0600" ;;  # 12pm CST
+              "7 20 * * *") EXPECT="-0500" ;;  # 3pm CDT
+              "7 21 * * *") EXPECT="-0600" ;;  # 3pm CST
+              "7 23 * * *") EXPECT="-0500" ;;  # 6pm CDT
+              "7 0 * * *")  EXPECT="-0600" ;;  # 6pm CST
+              *) EXPECT="" ;;
+            esac
+            if [ -n "$EXPECT" ] && [ "$OFFSET" = "$EXPECT" ]; then
+              echo "run=true" >> "$GITHUB_OUTPUT"
+              echo "Schedule '$SCHEDULE' matches current DST offset ($OFFSET) — running, regardless of delay."
+            else
+              echo "run=false" >> "$GITHUB_OUTPUT"
+              echo "Schedule '$SCHEDULE' is the off-DST twin (offset $OFFSET, expected $EXPECT) — skipping."
+            fi
           fi
 
       - uses: actions/checkout@v4
