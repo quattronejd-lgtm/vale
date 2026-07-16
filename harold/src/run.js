@@ -9,11 +9,18 @@ import { pickArticle, editorialize } from "./editorial.js";
 import { vetHero } from "./hero.js";
 import { render } from "./render.js";
 import { publishCard } from "./publish.js";
+import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const OUT = path.resolve(__dirname, "../out/card.jpg");
+
+// Posting slots are hours apart; GitHub's own cron can fire the SAME slot late
+// (observed up to ~30+ min) even after a manual/watchdog dispatch already
+// covered it. This cooldown makes overlapping triggers a safe no-op instead
+// of a duplicate post, regardless of which trigger source is "late."
+const COOLDOWN_MINUTES = Number(process.env.HAROLD_COOLDOWN_MINUTES) || 60;
 
 function parseArgs(argv) {
   const live = argv.includes("--live");
@@ -21,9 +28,37 @@ function parseArgs(argv) {
   return { dryRun: !live };
 }
 
+/** Minutes since the ledger's most recent post, or Infinity if there is none. */
+async function minutesSinceLastPost(ledgerPath) {
+  let ledger;
+  try {
+    ledger = JSON.parse(await readFile(ledgerPath, "utf8"));
+  } catch {
+    return Infinity;
+  }
+  const last = ledger.posted?.[0];
+  if (!last?.postedAt) return Infinity;
+  return (Date.now() - new Date(last.postedAt).getTime()) / 60_000;
+}
+
 export async function main(argv = process.argv.slice(2)) {
   const { dryRun } = parseArgs(argv);
   console.log(`[run] mode: ${dryRun ? "DRY-RUN (no posting)" : "LIVE"}`);
+
+  // Cooldown guard (live only): if something posted very recently, this is
+  // almost certainly an overlapping trigger for the slot already covered
+  // (e.g. GitHub's own cron firing late after a manual catch-up already ran).
+  // Skip rather than post a second article for the same slot.
+  if (!dryRun) {
+    const sinceLast = await minutesSinceLastPost(DEFAULT_LEDGER);
+    if (sinceLast < COOLDOWN_MINUTES) {
+      console.log(
+        `[run] last post was ${sinceLast.toFixed(1)}m ago (< ${COOLDOWN_MINUTES}m cooldown) — ` +
+          `this slot looks already covered by another trigger. Skipping to avoid a duplicate post.`
+      );
+      return { status: "cooldown-skip", sinceLast };
+    }
+  }
 
   // 1) fetch
   const items = await fetchArticles({ limit: 5 });
