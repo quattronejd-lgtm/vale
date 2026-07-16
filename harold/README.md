@@ -177,6 +177,35 @@ the single newest unposted story, so the four slots work through the day's artic
   active via ledger commits, but if Harold idles in dry-run for months, re-enable the
   workflow from the Actions tab.
 
+⚠️ **GitHub's own scheduler is not fully reliable.** In testing it has (a) delayed firing by
+70+ minutes — handled by keying the DST guard off `github.event.schedule` instead of wall-clock
+hour, so a late run still recognizes its intended slot — and (b) on at least one occasion, not
+fired *at all* for a slot, with no run of any kind. (b) can't be fixed from inside the workflow,
+since there's no run to correct. The `repository_dispatch` backstop below closes that gap with a
+genuinely independent clock.
+
+**Backstop: external cron → `repository_dispatch`.** A free third-party cron service (e.g.
+[cron-job.org](https://cron-job.org)) calls the GitHub API directly, on its own clock, four times
+a day — completely decoupled from GitHub Actions' own (occasionally unreliable) scheduler:
+
+1. Create a free account at cron-job.org (or similar) and a **GitHub Personal Access Token**
+   (Settings → Developer settings → Fine-grained tokens) scoped to this repo with
+   **Contents: read/write** and **Actions: read/write** permissions.
+2. Create 4 cron jobs, each set to the **America/Chicago** timezone (most services support named
+   timezones directly, so DST is handled automatically — no UTC math needed) at 9:00, 12:00,
+   15:00, and 18:00.
+3. Each job sends:
+   - **URL**: `https://api.github.com/repos/quattronejd-lgtm/vale/dispatches`
+   - **Method**: `POST`
+   - **Headers**: `Authorization: Bearer <your PAT>`, `Accept: application/vnd.github+json`
+   - **Body**: `{"event_type": "harold-post-slot"}`
+
+The workflow already listens for this event (`on.repository_dispatch.types: [harold-post-slot]`)
+and treats it like a scheduled run — respecting the `HAROLD_LIVE` dry-run/live switch, and safe
+against overlapping with GitHub's own scheduler firing the same slot, since `run.js`'s cooldown
+guard (`HAROLD_COOLDOWN_MINUTES`, default 60) skips posting if something already went out
+recently, regardless of which trigger fired first.
+
 **Alternative: self-hosted cron** — `deploy/harold.cron` (daily 9am CT, dry-run by default).
 Install with `crontab deploy/harold.cron` after editing the absolute paths inside, and flip
 `--dry-run` to `--live` once a dry-run is approved.

@@ -5,6 +5,13 @@ on:
     # Four posts a day: 9am, 12pm, 3pm, 6pm America/Chicago, year-round.
     # GitHub cron is UTC-only, so fire at both CDT and CST candidates for
     # each slot and let the timezone guard run exactly the right ones.
+    #
+    # KNOWN UNRELIABLE: GitHub's own scheduler has been observed to (a) delay
+    # firing by 70+ minutes, and (b) on at least one occasion, not fire AT ALL
+    # for a slot (no run of any kind, not even late). (a) is handled by the
+    # delay-invariant guard below; (b) cannot be fixed from inside this
+    # workflow, since there's no run to correct — hence repository_dispatch
+    # below as an independent backstop clock.
     - cron: "7 14 * * *"   # 9am CDT
     - cron: "7 15 * * *"   # 9am CST / 10am CDT (guard skips)
     - cron: "7 17 * * *"   # 12pm CDT
@@ -13,6 +20,13 @@ on:
     - cron: "7 21 * * *"   # 3pm CST / 4pm CDT (guard skips)
     - cron: "7 23 * * *"   # 6pm CDT
     - cron: "7 0 * * *"    # 6pm CST / 7pm CDT (guard skips)
+  # Backstop trigger: an external cron service (outside GitHub Actions'
+  # scheduler entirely) can POST to the GitHub API to fire this event at each
+  # slot. See README "Scheduling" section for exact setup. Because the
+  # external service already fires at the correct America/Chicago-local time,
+  # no DST-twin logic is needed for this trigger type — it always runs.
+  repository_dispatch:
+    types: [harold-post-slot]
   workflow_dispatch:
     inputs:
       mode:
@@ -69,6 +83,9 @@ jobs:
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "run=true" >> "$GITHUB_OUTPUT"
             echo "Manual dispatch — running."
+          elif [ "${{ github.event_name }}" = "repository_dispatch" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+            echo "External backstop cron fired (repository_dispatch) — running."
           else
             case "$SCHEDULE" in
               "7 14 * * *") EXPECT="-0500" ;;  # 9am CDT
