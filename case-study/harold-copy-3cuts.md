@@ -1,7 +1,7 @@
 # CONSTELLATION — "The Build" (Harold)
 **Series:** Personal Brand (Human OS / post-AI leverage) · **God Dial:** 2 (AI Operator flex, but the psychology stays load-bearing: direction > production, taste as moat) · **Face mix:** Joe's story as proof, audience-mirror in the turn
 **One insight:** AI didn't replace the builder — it changed the job. Production became direction: the human decides what gets made, how it looks, and what runs alone; the AI handles everything between the decisions.
-**Guardrail:** The client brand is anonymized ("a media brand's Instagram"). No tool-stack name-drops in v1 — "the AI" throughout; expand to named tools only if Joe opts into the full operator flex. All numbers verified against the repo's git history and post ledger.
+**Guardrail:** Good News Network is named (Joe's call, 2026-07-16) — verification IS the proof: readers can open @goodnewsnetwork and see Harold's posts live. No tool-stack name-drops in v1 — "the AI" throughout; expand to named tools only if Joe opts into the full operator flex. All numbers verified against the repo's git history and post ledger.
 
 **Companion asset:** `carousel/harold-carousel-01..08.png` (Field Notes / The Build, 8 slides, rendered from `carousel/harold-carousel.html`).
 
@@ -20,7 +20,7 @@
 "I didn't write code. I didn't open a design tool. I made decisions. Locked the visual design sixteen minutes in. Approved every dry run before anything touched the feed. Said 'the badge is too big' about five different ways. The AI did everything between my decisions — including five rounds of API plumbing I never want to understand."
 
 **[method · SCREENSHOT LINE]**
-"Thirteen hours after the first commit, it posted to a real Instagram account."
+"Thirteen hours after the first commit, it posted to the Good News Network's Instagram — 48,000 followers. Go look: @goodnewsnetwork."
 *[cut to: timeline graphic — 6:57pm first commit → 7:13pm design locked → 8:16am live post]*
 "It posted twelve times on day one. I kept the six that earned it. Taste is still my job — that's the point."
 
@@ -36,7 +36,7 @@
 
 **2/** First: what I didn't do. I didn't write code. I didn't open a design tool. I didn't "prompt an app into existence." I directed one. My entire contribution was decisions: what it makes, how it looks, when it's allowed to act.
 
-**3/** The timeline, from the git history: first commit at 6:57pm. Signature card design approved and locked by 7:13pm — sixteen minutes in. Scheduled in the cloud overnight. First live post on a real account at 8:16am. 13 hours, 20 minutes, commit to published.
+**3/** The timeline, from the git history: first commit at 6:57pm. Signature card design approved and locked by 7:13pm — sixteen minutes in. Scheduled in the cloud overnight. First live post on @goodnewsnetwork (48K followers) at 8:16am. 13 hours, 20 minutes, commit to published.
 
 **4/** Locking the design 16 minutes in was the most important decision of the whole build. Once the template was frozen, every downstream step became "fill the template" — never "redesign it." Constraint is what makes autonomy safe.
 
@@ -48,7 +48,7 @@
 
 **8/** The math people skip: four posts a day, on schedule, unattended, free-tier infrastructure. My total investment was one day of direction and a few minutes of taste per week. Headcount scales linearly. Systems compound.
 
-**9/** The human is the hero. AI is the companion. I decide what the brand says, how it looks, and what it's allowed to do alone — the system handles everything in between. In the post-AI era, that's how I build: on my terms. Steal it.
+**9/** The human is the hero. AI is the companion. I decide what the brand says, how it looks, and what it's allowed to do alone — the system handles everything in between. In the post-AI era, that's how I build: on my terms. The build is live right now at @goodnewsnetwork. Go see the work, then steal the method.
 
 ---
 
@@ -63,7 +63,7 @@ Here's the part that matters, though — what my day actually looked like. Becau
 
 I made decisions. I locked the visual design sixteen minutes into the build, and it stayed locked — every step after that filled the template rather than redesigning it. I approved dry runs before anything was allowed to touch a live feed. I gave design notes an art director would recognize: "the badge is too big," five rounds, six pixels at a time. The AI handled everything between my decisions — including five consecutive fixes to one API's token handling that I never had to understand.
 
-Thirteen hours and twenty minutes after the first commit, it published to a real Instagram account. It posted twelve times on day one. I kept the six that earned their place and pulled the rest — because taste didn't get automated. Taste got *promoted*. It's now the whole job.
+Thirteen hours and twenty minutes after the first commit, it published to the Good News Network's Instagram — @goodnewsnetwork, 48,000 followers. You can go look at the work right now. It posted twelve times on day one. I kept the six that earned their place and pulled the rest — because taste didn't get automated. Taste got *promoted*. It's now the whole job.
 
 And before it earned autonomy, it earned trust: dry-run by default, a quality gate so a bad photo can't ship an ugly post at 2am, a ledger so it never repeats itself. A demo works when you watch it. An employee works when you don't.
 

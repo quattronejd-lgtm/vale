@@ -164,8 +164,9 @@ waitlist link? DM? Newsletter signup?]
 1. **Branding materials:** logo files, brand colors (hex), fonts, any voice/
    style guide Quattrone Brands uses.
 2. **Positioning decisions:** title choice; how much to reveal about tooling
-   (name the specific AI tools, or keep it generic "AI agent"?); whether GNN
-   is named or anonymized ("a media brand's Instagram").
+   (name the specific AI tools, or keep it generic "AI agent"?). ~~Whether GNN
+   is named~~ — **resolved 2026-07-16: named**, so readers can verify the
+   build live at @goodnewsnetwork.
 3. **Your quotes:** the thesis tie-in section and 1–2 teaching moments in
    your voice.
 4. **The Instagram grid screenshot** (only you have account access).

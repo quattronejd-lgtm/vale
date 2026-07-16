@@ -84,6 +84,10 @@ body{background:#33313a;}
 
 .strike{position:relative;display:inline-block;}
 .strike:after{content:"";position:absolute;left:-4px;right:-4px;top:52%;height:5px;background:var(--rose);transform:rotate(-1.4deg);}
+
+/* signature (close card) */
+@font-face{font-family:'Caveat';font-style:normal;font-weight:600;src:url('fonts/caveat.woff2') format('woff2');}
+.sig{font-family:'Caveat',cursive;font-weight:600;font-size:74px;color:var(--ink);line-height:1;transform:rotate(-2.2deg);margin:2px 0 10px 2px;}
 </style>
 </head>
 <body>
@@ -99,7 +103,7 @@ body{background:#33313a;}
     <div class="hair head-hair"></div>
     <div class="content" style="justify-content:center;padding-bottom:40px;">
       <div class="h" style="font-size:86px;">My newest employee<br>shipped <span class="grad">in one day.</span></div>
-      <div class="lead" style="font-size:37px;margin-top:38px;max-width:860px;">Meet Harold: an autonomous publisher. It picks the story, designs the card, writes the caption, and posts — four times a day, without me.</div>
+      <div class="lead" style="font-size:37px;margin-top:38px;max-width:880px;">Meet Harold: an autonomous publisher for Good News Network's Instagram. It picks the story, designs the card, writes the caption, and posts — four times a day, without me.</div>
       <div class="field" style="margin-top:64px;">
         <div class="col"><div class="lab">Subject</div><div class="val">An AI employee</div></div>
         <div class="col"><div class="lab">Method</div><div class="val teal">Direct &rarr; approve &rarr; run</div></div>
@@ -138,7 +142,7 @@ body{background:#33313a;}
         <div class="step"><span class="k" style="background:#1A1330"></span><span class="t">6:57 pm — first commit.</span></div>
         <div class="step"><span class="k" style="background:#C4464C"></span><span class="t">7:13 pm — signature card design approved, then locked.</span></div>
         <div class="step"><span class="k" style="background:#262150"></span><span class="t">overnight — scheduled in the cloud. No machine of mine runs it.</span></div>
-        <div class="step"><span class="k" style="background:#13A493"></span><span class="t">8:16 am — first live post on a real Instagram account.</span></div>
+        <div class="step"><span class="k" style="background:#13A493"></span><span class="t">8:16 am — first live post on @goodnewsnetwork (48.8K followers).</span></div>
       </div>
       <div class="note" style="margin-top:auto;margin-bottom:64px;font-size:25px;">24 pull requests merged in the first ~24 hours.</div>
     </div>
@@ -233,10 +237,10 @@ body{background:#33313a;}
       <div class="lead" style="font-size:37px;margin-top:38px;max-width:850px;">I decide what the brand says, how it looks, and what it's allowed to do alone. The system handles everything in between. That's building on my terms.</div>
       <!-- signed sign-off motif -->
       <div class="field" style="margin-top:64px;border-left:6px solid transparent;border-image:linear-gradient(180deg,#7860C0,#48A8A8,#30C090) 1;">
-        <div class="col" style="flex:1.4;"><div class="lab">Signed</div><div class="val">Joe Quattrone <span style="color:var(--muted);font-weight:400;">/ Quattrone Brands</span></div></div>
+        <div class="col" style="flex:1.4;"><div class="lab">Signed</div><div class="sig">Joe Quattrone</div><div class="val" style="font-size:24px;">Joe Quattrone <span style="color:var(--muted);font-weight:400;">/ Quattrone Brands</span></div></div>
         <div class="col"><div class="lab">Envelope ID</div><div class="val" style="font-family:var(--mono);font-size:24px;">HAROLD-BUILD-0716</div></div>
       </div>
-      <div class="note" style="margin-top:34px;font-size:23px;">Follow for more field notes on the Human OS.</div>
+      <div class="note" style="margin-top:34px;font-size:23px;">See the build live: @goodnewsnetwork on Instagram · follow for more field notes on the Human OS.</div>
     </div>
   </div>
   <div class="foot"><div class="fl">Quattrone Brands · Field Notes</div><div class="fr">08 / 08</div></div>
