@@ -119,6 +119,48 @@ risk profiles, and approval needs. Loose coupling via the published feed.
   non-blocking. Substack posts always point to Beehiiv, never the reverse.
   If it's ever a burden, drop it; nothing downstream notices.
 
+## Design direction
+
+**One system, already built:** everything derives from the QB Field Notes design
+system in `case-study/carousel/` — tokens, fonts, header/footer grammar, the
+signed-by ink card, Joe's vector signature. No new visual language gets invented
+for this pipeline. **Templates are locked the Harold way:** one acceptance
+render per format, Joe approves it, then it's frozen — downstream only fills.
+
+### Beehiiv articles should look like: *a Field Note in long form*
+
+- **Publication chrome** (set once in Beehiiv's template settings, not
+  generated): QB wordmark, ink/paper palette, brand fonts where the platform
+  allows.
+- **Generated per article by the serializer:**
+  - A **header card** (~1200×630, doubles as the OG/share image): Field Notes
+    cover grammar — gradient bar, wordmark, mono meta line
+    (`FIELD NOTES / <SERIES> · NO. X`), article title with one gradient phrase.
+  - **One pull-quote block** per article in the brand style.
+  - The **signed-by ink card** as the article footer (asset:
+    `case-study/carousel/assets/signature.svg`), with the envelope-ID motif.
+  - A consistent **CTA block** (destination per Simon's Q1).
+- Prose formatting rules (paragraph length, bolding, section eyebrows) belong
+  in the editorial constitution, not here.
+
+### Meta posts should look like: *Field Notes cards — typographic, not photographic*
+
+Deliberately **distinct from GNN's photo-background style**. QB's identity is
+the paper/ink/typographic aesthetic of the case-study carousel — which is about
+to be the brand's most visible artifact; the daily feed should look like it
+came from the same hand. Three locked formats, all 1080×1350, same
+header/footer grammar, chosen per-post via the metadata sidecar:
+
+1. **HOOK card** — cover-style: big display headline with one gradient phrase,
+   one-line lead. (The workhorse.)
+2. **QUOTE card** — the article's pull-quote, large, with attribution line.
+3. **STAT card** — one big number/claim + context line (the "Payroll ≈ $0"
+   slide is the reference).
+
+Same asset posts to both Instagram and Facebook — no per-platform variants in
+v1 (elegant beats optimal). Photography can join later as a fourth format if
+the feed needs air; it is out of scope for Milestone 1.
+
 ## Milestone 1 — acceptance test (build this first, nothing publishes)
 
 One chapter, end to end, all local/repo artifacts:
@@ -126,8 +168,10 @@ One chapter, end to end, all local/repo artifacts:
 1. Editorial constitution drafted with Joe (short doc, versioned in repo).
 2. Serializer produces 2–3 articles from the chapter, each with all four
    output files.
-3. QB social card templates built from the case-study design system; cards
-   rendered from each article's sidecar.
+3. The three card templates (hook / quote / stat) built from the case-study
+   design system; one acceptance render of each approved by Joe, then locked;
+   cards rendered from each article's sidecar. The Beehiiv header card counts
+   as a fourth template, same approval flow.
 4. Joe reviews articles + cards and reacts. Iterate until one full article
    packet is approved.
 5. **Exit criteria:** approved packet exists; zero external publishes; no live
