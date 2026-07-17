@@ -80,9 +80,18 @@ risk profiles, and approval needs. Loose coupling via the published feed.
 - **Job:** carve it into 2–4 standalone articles; **transcreate, don't excerpt**
   — shift first-person memoir into reader-facing teaching, per an editorial
   constitution (drafted with Joe as part of Milestone 1; it encodes voice, the
-  human-hero/AI-companion frame, and health-content guardrails: lead with
-  neuroplasticity/behavior, personal results as credibility not promise, no
-  before/after framing).
+  human-hero/AI-companion frame, and health-content guardrails: personal
+  results as credibility not promise, no before/after framing).
+- **Content pillars (Joe, 2026-07-17 — every article gets tagged to exactly
+  one; the mix sets the feed's rhythm):** The book is a human-transformation
+  book; weight loss is the proof domain, not the subject.
+  1. **Denial & The Turn** — seeing clearly, big moments, decision making
+  2. **Daily Practice** — systems, habits, protocols over willpower
+  3. **Overcoming Obstacles** — resistance, setbacks, plateaus
+  4. **Growth & Transformation** — identity, development, becoming
+  5. **AI-Assisted Weight Loss** — the Nozempic protocol; Joe's 70 lbs as
+     lived case study (the ONLY health-content pillar; the Meta-sensitivity
+     guardrails apply chiefly here)
 - **Output per article (the contract with everything downstream):**
   1. `article.md` — the piece itself
   2. `beehiiv.json` — ready-to-send Create Post API payload
