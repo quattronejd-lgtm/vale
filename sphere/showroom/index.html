@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>The Sphere Showroom | Quattrone Brands</title>
-<meta name="description" content="Walk in. Borrow freely. Every AI Operator skill and protocol — run it in a chat or grab the prompt and go. Plus async video with Joe and Simon." />
+<meta name="description" content="Walk in. Borrow freely. AI Operator skills, protocols, and Daily Tracks — run it in a chat or grab the prompt and go. Plus async video with Joe and Simon." />
 <style>
 @font-face {
   font-family: 'Inter';
@@ -206,6 +206,8 @@
     transition: transform 160ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 200ms;
   }
   .item.protocol { border-top-color: var(--teal-600); }
+  .item.track { border-top-color: var(--mint-600); }
+  .item.track .kind { color: #2C9B54; }
   .item:hover { transform: translateY(-2px); box-shadow: var(--shadow-hero); }
   .item:focus-visible { outline: 2px solid var(--teal-600); outline-offset: 2px; }
   .kind {
@@ -355,21 +357,22 @@
     </div>
     <div class="hero-eyebrow">Forward-Deployed Enterprise · Open to Cohort 02</div>
     <h1>Walk in. <span class="grad-text">Borrow freely.</span></h1>
-    <p class="lede">Every skill and protocol from The AI Operator, on the floor and running. Open one, read the loop, then take it — run it in a chat right here, or grab the prompt and go.</p>
+    <p class="lede">Every skill and protocol from The AI Operator — plus the Daily Tracks — on the floor and running. Open one, read the loop, then take it — run it in a chat right here, or grab the prompt and go.</p>
     <div class="hero-stats">
       <div class="hs"><b class="grad-text">11</b><span>AI skills</span></div>
       <div class="hs"><b>4</b><span>quick-win protocols</span></div>
+      <div class="hs"><b>15</b><span>daily tracks</span></div>
       <div class="hs"><b>Async</b><span>video with Joe &amp; Simon</span></div>
-      <div class="hs"><b>1</b><span>loop underneath it all</span></div>
     </div>
   </div>
 </header>
 
 <nav class="bar" aria-label="Filter the library">
   <div class="wrap bar-inner">
-    <button class="tab" data-filter="all" aria-pressed="true">All — 15</button>
+    <button class="tab" data-filter="all" aria-pressed="true">All — 30</button>
     <button class="tab" data-filter="skill" aria-pressed="false">AI Skills — 11</button>
     <button class="tab" data-filter="protocol" aria-pressed="false">Protocols — 4</button>
+    <button class="tab" data-filter="track" aria-pressed="false">Daily Tracks — 15</button>
     <span class="bar-note">Click any card to open its prompt</span>
   </div>
 </nav>
@@ -814,6 +817,44 @@ Iteration: every win and loss tunes the template. Proposals are a loop.`
   }
 ];
 
+const TRACKS = [
+  { name: "The Thinking Partner", desc: "For the decision you keep circling. One sharp question at a time until the tradeoff is naked — then you choose.",
+    prompt: `Be my thinking partner, not my cheerleader. I'm stuck on a decision I'll describe in one line. Ask me one sharp question at a time — and push back when my reasoning is really fear or ego wearing a suit. Loop until the actual tradeoff is naked on the table. Then make me choose, and tell me the smallest first move that makes the choice real today.` },
+  { name: "The Power-Down", desc: "For the night your head is still running the business. A walk from spinning to still.",
+    prompt: `I can't power down — my head's still running the business. Walk me out of it. Ask me one question at a time: what's actually unfinished, what's just noise pretending to be urgent, and what genuinely can't be touched until tomorrow. End by naming the one thing I'm allowed to hold overnight, and give me permission to drop the rest.` },
+  { name: "The Hand-Off", desc: "For the operator holding too much. Sorts your day into “only me” and “someone else, if I let them.”",
+    prompt: `Help me find what I'm hoarding. Ask me to list what I did today, then interrogate it one item at a time: does this actually require me, or am I holding it out of habit, control, or ego? Keep looping until the list is sorted into "only me" and "someone else, if I let them." End with the single thing I'll hand off this week.` },
+  { name: "The Real Reason", desc: "For right before something physically hard. Finds the thing underneath the distance and the PR.",
+    prompt: `I'm about to do something physically hard. Before I start, ask me one question at a time until I've named the real reason I'm out here — not the distance, not the PR, the thing underneath it. When you hear the true one, reflect it back in a single sentence I can carry the whole way.` },
+  { name: "The Cheap Exit", desc: "For the moment mid-effort when you want to stop and haven't earned it. No comfort — questions.",
+    prompt: `I want to stop and I haven't earned the right to yet. Don't comfort me — question me. One at a time: is this my body's real limit or my mind's cheap exit? What did I say I came here to prove? Loop fast, then give me one sentence and one thing to move on.` },
+  { name: "The One No", desc: "For when the yeses are leaking your energy. Ends with the no you've been avoiding, in sendable words.",
+    prompt: `I'm saying yes too much and I can feel it. Ask me one question at a time to find where my energy is actually leaking — which yeses are real, and which are just fear of disappointing someone. Loop until the pattern is obvious. End by drafting the one "no" I've been avoiding, in words I could actually send.` },
+  { name: "The Enough Bar", desc: "For the day nothing feels like enough. Finds whose standard you're actually failing — and whether it's even yours.",
+    prompt: `I never feel like I've done enough, no matter what I do. Be gentle but honest. Ask me one question at a time: whose standard am I actually failing, and is it even mine? Keep looping until we find where the bar came from. End by telling me one thing I did today that would count as "enough" — if I'd let it.` },
+  { name: "The Slow-Down", desc: "For when your nervous system is ahead of your thoughts. Short grounding questions, nothing solved.",
+    prompt: `My nervous system is ahead of my thoughts — I'm spun up and can't think straight. Slow me down. Ask me one small, grounding question at a time, keep them short, and wait for each answer. Don't solve anything. Just walk me from spinning to still, then give me the next single thing to do — nothing more.` },
+  { name: "The Becoming Gap", desc: "For the gap between who you're performing and who you're becoming. Ends with the next version of you, named.",
+    prompt: `I want to look at the gap between who I'm performing and who I'm actually becoming. Ask me one question at a time. Start with: who did I say I wanted to become this year — and did today move me toward that person or away? Push where I get vague. End by naming, in one line, the next version of me and the first behavior that belongs to them.` },
+  { name: "The Calendar Test", desc: "For when your stated values and your time disagree. The calendar testifies.",
+    prompt: `I claim certain values but I'm not sure my time agrees. Ask me to name my top three, then walk through how I actually spent the last three days, one value at a time — where does the calendar back the claim, and where does it expose it? Loop until it's honest. End with the one appointment I should add or kill this week to close the gap.` },
+  { name: "The Front Door", desc: "For the walk from the day into the house. Shows up for the people inside with the best of what's left.",
+    prompt: `I'm about to walk back through my front door and I don't want to bring the day's noise home with me. Ask me one question at a time: what am I still carrying, who inside needs the best version of me tonight, and what's the smallest way to actually show up. End by handing me one thing to say or do in the first five minutes through the door.` },
+  { name: "The First Message", desc: "For the distance you've let grow with someone. Ends with a draft: short, human, no defending.",
+    prompt: `There's someone I've let a distance grow with, and I keep avoiding it. Ask me one question at a time — what actually happened, my honest part in it (not just theirs), and what I'm afraid of if I reach out. Loop until my part is clear. End by drafting the first message I could send: short, human, no defending.` },
+  { name: "The Evidence", desc: "For the voice that says you don't belong. Digs up every hard thing you've already survived.",
+    prompt: `I'm doing something hard and part of me is sure I don't belong. Ask me one question at a time to dig up the evidence I'm ignoring — every time I've done a hard thing before and survived it. Keep looping until the list is longer than the doubt. End with a single sentence I can repeat when the doubt comes back.` },
+  { name: "Your Own Race", desc: "For the comparison spiral. Interrupts it and hands you a marker that's yours alone.",
+    prompt: `I keep measuring myself against everyone around me and losing. Interrupt it. Ask me one question at a time: whose race am I actually running, and what would my own progress even look like today? Loop until the comparison loosens. End by giving me one marker that's mine alone to hit — nothing to do with anyone else.` },
+  { name: "The Keystone", desc: "For when you're fixing ten things and holding none. Finds the one habit that pulls the rest.",
+    prompt: `I'm trying to fix ten things and holding none of them. Help me find the one that pulls the rest. Ask me one question at a time about what's actually breaking down in my days, then look for the single keystone habit that — if I held it — would make the others easier or unnecessary. End by naming that one habit and the smallest daily version of it I can't fail at.` }
+];
+TRACKS.forEach(t => LIB.push({ kind: "track", name: t.name, desc: t.desc, trigs: ["2–4 min", "one question at a time"], prompt: t.prompt }));
+
+const KIND_LABEL = { skill: 'AI Skill', protocol: 'Quick-Win Protocol', track: 'Daily Track' };
+const KIND_COLOR = { skill: 'var(--plum-600)', protocol: 'var(--teal-700)', track: '#2C9B54' };
+const KIND_SUB = { skill: 'a Beta in full', protocol: 'a Beta in full', track: 'a Daily Track · Runningman' };
+
 const grid = document.getElementById('grid');
 const overlay = document.getElementById('overlay');
 const toast = document.getElementById('toast');
@@ -824,13 +865,13 @@ function render(filter) {
   LIB.forEach((item, i) => {
     if (filter !== 'all' && item.kind !== filter) return;
     const b = document.createElement('button');
-    b.className = 'item' + (item.kind === 'protocol' ? ' protocol' : '');
+    b.className = 'item' + (item.kind !== 'skill' ? ' ' + item.kind : '');
     b.setAttribute('data-i', i);
     b.innerHTML = `
-      <span class="kind">${item.kind === 'protocol' ? 'Quick-Win Protocol' : 'AI Skill'}</span>
+      <span class="kind">${KIND_LABEL[item.kind]}</span>
       <h3>${item.name}</h3>
       <p>${item.desc}</p>
-      <span class="trigs">${item.trigs.slice(0,2).map(t => `<span class="trig">"${t}"</span>`).join('')}</span>
+      <span class="trigs">${item.trigs.slice(0,2).map(t => `<span class="trig">${item.kind === 'track' ? t : '"' + t + '"'}</span>`).join('')}</span>
       <span class="item-cta">Open the loop</span>
     `;
     b.addEventListener('click', () => open(i));
@@ -840,12 +881,12 @@ function render(filter) {
 
 function open(i) {
   current = LIB[i];
-  document.getElementById('sheet-kind').textContent = current.kind === 'protocol' ? 'Quick-Win Protocol' : 'AI Skill';
-  document.getElementById('sheet-kind').style.color = current.kind === 'protocol' ? 'var(--teal-700)' : 'var(--plum-600)';
+  document.getElementById('sheet-kind').textContent = KIND_LABEL[current.kind];
+  document.getElementById('sheet-kind').style.color = KIND_COLOR[current.kind];
   document.getElementById('sheet-title').textContent = current.name;
   document.getElementById('sheet-desc').textContent = current.desc;
-  document.getElementById('sheet-trigs').innerHTML = current.trigs.map(t => `<span class="trig">"${t}"</span>`).join('');
-  document.getElementById('pp-title').textContent = '// ' + current.name + ' · a Beta in full';
+  document.getElementById('sheet-trigs').innerHTML = current.trigs.map(t => `<span class="trig">${current.kind === 'track' ? t : '"' + t + '"'}</span>`).join('');
+  document.getElementById('pp-title').textContent = '// ' + current.name + ' · ' + KIND_SUB[current.kind];
   document.getElementById('pp-body').textContent = current.prompt;
   overlay.setAttribute('data-open', '');
   document.body.style.overflow = 'hidden';
