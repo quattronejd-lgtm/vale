@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>The Sphere Showroom | Quattrone Brands</title>
-<meta name="description" content="Walk in. Borrow freely. AI Operator skills, protocols, and Daily Tracks — plus Sphere video loops, booking through Vale, and the Zoom-hub meeting library." />
+<meta name="description" content="Walk in. Borrow freely. The Ghostwriter Interview homework, AI Operator skills, protocols, and Daily Tracks — plus Sphere video loops, intake booking, and the Zoom-hub library." />
 <style>
 @font-face {
   font-family: 'Inter';
@@ -379,9 +379,57 @@
 
 <main class="lib">
   <div class="wrap">
+    <button class="featured" id="featured-gw">
+      <div class="f-rule"></div>
+      <div class="f-body">
+        <div class="f-left">
+          <div class="f-eyebrow">Cohort 02 homework · Run before your intake</div>
+          <h3>The Ghostwriter Interview</h3>
+          <p>A 45–60 minute interview that pulls your real story, beliefs, and turning points out of your head and onto the page. Paste it into Claude and just talk — don't edit yourself. Bring the Brand Narrative it produces to your intake session.</p>
+        </div>
+        <span class="f-cta">Open the prompt →</span>
+      </div>
+    </button>
     <div class="grid" id="grid"></div>
   </div>
 </main>
+
+<style>
+  .featured {
+    display: block; width: 100%; text-align: left;
+    background: var(--ink-950);
+    border: none; border-radius: 14px;
+    padding: 0; margin-bottom: 28px;
+    overflow: hidden;
+    box-shadow: var(--shadow-hero);
+    cursor: pointer;
+    transition: transform 160ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 200ms;
+  }
+  .featured:hover { transform: translateY(-2px); }
+  .featured:focus-visible { outline: 2px solid var(--teal-600); outline-offset: 2px; }
+  .f-rule { height: 3px; background: var(--grad); }
+  .f-body { display: flex; align-items: center; justify-content: space-between; gap: 32px; padding: 30px 36px; }
+  .f-eyebrow {
+    font-family: var(--font-mono); font-size: 12px; font-weight: 500;
+    letter-spacing: 0.18em; text-transform: uppercase; color: var(--teal-600);
+  }
+  .featured h3 {
+    font-family: var(--font-display); font-size: 30px; font-weight: 800;
+    letter-spacing: -0.02em; color: var(--bone-50); margin: 10px 0 8px;
+  }
+  .featured p { font-size: 15.5px; line-height: 1.6; color: var(--stone-400); max-width: 760px; }
+  .f-cta {
+    flex-shrink: 0;
+    display: inline-flex; align-items: center;
+    padding: 14px 24px;
+    font-size: 15px; font-weight: 600; line-height: 1;
+    color: var(--ink-950); background: var(--bone-50);
+    border-radius: 999px;
+    transition: transform 160ms;
+  }
+  .featured:hover .f-cta { transform: translateX(3px); }
+  @media (max-width: 800px) { .f-body { flex-direction: column; align-items: flex-start; } }
+</style>
 
 <section class="dialogue">
   <div class="wrap dlg-inner">
@@ -473,6 +521,7 @@
         <div class="mc-eyebrow" style="color:var(--teal-700);">The calendar</div>
         <h3>Ask Vale. Get booked.</h3>
         <p>Vale is Joe's virtual EA — she lives inside Anthropic and runs the calendar. Come to the showroom, tell her what you need, and she puts you on Joe or Simon's schedule. No email chains, no link hunting.</p>
+        <a class="mc-btn" href="https://scheduler.zoom.us/joseph-quattrone/intake-meeting" target="_blank" rel="noopener">Book your intake session →</a>
       </div>
       <div class="mc t-plum">
         <div class="mc-eyebrow" style="color:var(--plum-600);">The library · Zoom hub</div>
@@ -511,6 +560,16 @@
     letter-spacing: -0.018em; margin: 12px 0 10px;
   }
   .mc p { font-size: 16px; line-height: 1.6; color: var(--stone-600); }
+  .mc-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    margin-top: 20px;
+    padding: 13px 22px;
+    font-size: 14.5px; font-weight: 600; line-height: 1;
+    color: var(--bone-50); background: var(--teal-700);
+    border-radius: 999px; text-decoration: none;
+    transition: all 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .mc-btn:hover { background: #1B5E4C; transform: translateY(-1px); box-shadow: var(--shadow-card); }
 </style>
 
 <footer class="foot">
@@ -893,9 +952,17 @@ const TRACKS = [
 ];
 TRACKS.forEach(t => LIB.push({ kind: "track", name: t.name, desc: t.desc, trigs: ["2–4 min", "one question at a time"], prompt: t.prompt }));
 
-const KIND_LABEL = { skill: 'AI Skill', protocol: 'Quick-Win Protocol', track: 'Daily Track' };
-const KIND_COLOR = { skill: 'var(--plum-600)', protocol: 'var(--teal-700)', track: '#2C9B54' };
-const KIND_SUB = { skill: 'a Beta in full', protocol: 'a Beta in full', track: 'a Daily Track · Runningman' };
+const GHOSTWRITER = {
+  kind: 'homework',
+  name: 'The Ghostwriter Interview',
+  desc: "Your pre-intake homework. A 45\u201360 minute one-question-at-a-time interview that surfaces who you are, who you serve, and why you \u2014 and hands you a structured Brand Narrative. Fill the brackets, paste into Claude, and just talk. Bring the output to your intake session.",
+  trigs: ['45\u201360 min', 'one question at a time', 'bring the output to intake'],
+  prompt: "You are my Ghostwriter and Brand Archaeologist.\n\nI am [NAME] \u2014 [your role / business in one line: what you do, for how long, where]. I serve [WHO] through [the moments or problems you serve them in]. My core belief is that [the belief only you would defend].\n\nMy goal is not a polished bio. My goal is a simple closed loop that extracts the truest, most specific version of my story and turns it into the foundation for my personal brand. Interview me over a single ~45\u201360 minute session.\n\nCRITICAL RULE \u2014 read this first: Ask me only ONE question at a time. Ask it, then STOP and wait for my full answer before you ask anything else. Never send a list, a group, or a numbered batch of questions. This is a live back-and-forth conversation, not a questionnaire. One question, my answer, your next question.\n\nUse the following structure:\n\n1. OBJECTIVE\nBy the end of this session you must be able to answer, in my own words and with specifics, three questions a stranger could repeat back:\n- Who is [NAME]?\n- Who exactly do they serve, and in what moment of their life?\n- Why them, and not whoever the customer already has?\nYou are also collecting raw material: origin story, defining turning points, beliefs I'd defend, the exact phrases I use, and where my wedge shows up in real stories.\n\n2. HOW TO INTERVIEW ME (the inputs you control)\n- Ask ONE question at a time, every time. Wait for my full answer before you ask the next. Do not stack or list questions \u2014 one, then stop.\n- Start broad, then follow the energy and the emotion deeper.\n- When I give a story, dig for the specific: names, dates, the moment it turned, what I felt, what I said.\n- Mirror my own words back to me and ask \"say more about that.\"\n- Keep me talking; you talk as little as possible.\n\n3. NOISE TO REDUCE\nCut, and gently push me off of: industry jargon, generic mission-statement language, anything I say to \"sound impressive,\" and any answer that could belong to anyone else in my field. Those are noise, not signal.\n\n4. CONSISTENCY RULES\nKeep a steady pace. Don't rush to wrap up. It's fine if I ramble \u2014 your job is to pan for the gold in it. Capture my exact phrasing verbatim wherever it lands; my real words matter more than clean ones.\n\n5. FEEDBACK SIGNALS \u2014 how you know you're getting the real thing\n- Objective: I give specific names, numbers, dates, and concrete scenes rather than abstractions.\n- Subjective: I get energized, slow down, or get a little emotional. That's the vein. Stay in it.\n\n6. ADJUSTMENT LOGIC\n- If I go abstract or generic: stop and ask for one specific example.\n- If I ramble: let me finish, then reflect the one true line back and build on it.\n- If I shut down or go flat: change the angle, lower the stakes, ask about a person rather than a concept.\n- If I give a clich\u00e9: don't accept it \u2014 ask \"but what's the version only you would say?\"\n- If I light up: do NOT move on. Stay and go three layers deeper.\n\n7. WHAT NOT TO DO\n- Do not run this like a form or fire questions in a list.\n- Do not accept my first, safe, generic answer as final.\n- Do not write my brand FOR me before you've extracted it FROM me.\n- Do not flatter. Do not add complexity.\n\n8. SESSION FLOW\nMove through these arcs, one question at a time, following the energy: origin \u2192 the turning points that made me \u2192 who I'm built to serve and the moment they need me \u2192 why me / what I do that others don't \u2192 my wedge in a real story \u2192 what I believe and the legacy I want \u2192 the vision I'm working toward.\n\n9. OUTPUT SPEC\nWhen the interview is complete, produce a single structured Brand Narrative document containing:\n- Positioning: the three answers (who / who-for / why-them), tight.\n- My wedge, articulated in one clear paragraph.\n- 3\u20135 signature stories, captured with their specifics.\n- Core beliefs I'd defend.\n- My voice: recurring phrases and how I actually talk.\n- A first-draft one-line identity statement.\n\nCLOSING ANCHOR\nTell the truth in specifics \u2014 the brand is already inside the story, my only job is to say it out loud and let you find it."
+};
+
+const KIND_LABEL = { skill: 'AI Skill', protocol: 'Quick-Win Protocol', track: 'Daily Track', homework: 'Cohort 02 Homework' };
+const KIND_COLOR = { skill: 'var(--plum-600)', protocol: 'var(--teal-700)', track: '#2C9B54', homework: 'var(--teal-700)' };
+const KIND_SUB = { skill: 'a Beta in full', protocol: 'a Beta in full', track: 'a Daily Track · Runningman', homework: 'the Identity Spring · run before intake' };
 
 const grid = document.getElementById('grid');
 const overlay = document.getElementById('overlay');
@@ -916,18 +983,18 @@ function render(filter) {
       <span class="trigs">${item.trigs.slice(0,2).map(t => `<span class="trig">${item.kind === 'track' ? t : '"' + t + '"'}</span>`).join('')}</span>
       <span class="item-cta">Open the loop</span>
     `;
-    b.addEventListener('click', () => open(i));
+    b.addEventListener('click', () => open(item));
     grid.appendChild(b);
   });
 }
 
-function open(i) {
-  current = LIB[i];
+function open(item) {
+  current = item;
   document.getElementById('sheet-kind').textContent = KIND_LABEL[current.kind];
   document.getElementById('sheet-kind').style.color = KIND_COLOR[current.kind];
   document.getElementById('sheet-title').textContent = current.name;
   document.getElementById('sheet-desc').textContent = current.desc;
-  document.getElementById('sheet-trigs').innerHTML = current.trigs.map(t => `<span class="trig">${current.kind === 'track' ? t : '"' + t + '"'}</span>`).join('');
+  document.getElementById('sheet-trigs').innerHTML = current.trigs.map(t => `<span class="trig">${current.kind !== 'skill' && current.kind !== 'protocol' ? t : '"' + t + '"'}</span>`).join('');
   document.getElementById('pp-title').textContent = '// ' + current.name + ' · ' + KIND_SUB[current.kind];
   document.getElementById('pp-body').textContent = current.prompt;
   overlay.setAttribute('data-open', '');
@@ -968,6 +1035,8 @@ function showToast(msg) {
 document.getElementById('sheet-close').addEventListener('click', close);
 overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
 window.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+
+document.getElementById('featured-gw').addEventListener('click', () => open(GHOSTWRITER));
 
 document.getElementById('pp-copy').addEventListener('click', () => copyPrompt().then(() => showToast('Prompt copied.')));
 document.getElementById('btn-grab').addEventListener('click', () => copyPrompt().then(() => showToast('Prompt copied — go run your loop.')));
