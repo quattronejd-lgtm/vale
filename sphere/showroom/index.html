@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>The Sphere Showroom | Quattrone Brands</title>
-<meta name="description" content="Walk in. Borrow freely. Every AI Operator skill and protocol, open to the cohort — run it in a chat or grab the prompt and go." />
+<meta name="description" content="Walk in. Borrow freely. Every AI Operator skill and protocol — run it in a chat or grab the prompt and go. Plus async video with Joe and Simon." />
 <style>
 @font-face {
   font-family: 'Inter';
@@ -359,6 +359,7 @@
     <div class="hero-stats">
       <div class="hs"><b class="grad-text">11</b><span>AI skills</span></div>
       <div class="hs"><b>4</b><span>quick-win protocols</span></div>
+      <div class="hs"><b>Async</b><span>video with Joe &amp; Simon</span></div>
       <div class="hs"><b>1</b><span>loop underneath it all</span></div>
     </div>
   </div>
@@ -378,6 +379,94 @@
     <div class="grid" id="grid"></div>
   </div>
 </main>
+
+<section class="dialogue">
+  <div class="wrap dlg-inner">
+    <div class="dlg-copy">
+      <div class="hero-eyebrow">Coming to your Sphere · The Dialogue</div>
+      <h2>Leave me a video.<br>Get one <span class="grad-text">back.</span></h2>
+      <p>The Sphere is also where we talk. Async video threads — Marco Polo-style — with me and Simon. No call to book, no calendar Tetris. When something moves in the world of AI or personal growth, I record a take, you answer on your own time, and the whole room thinks it through together.</p>
+      <ul class="dlg-points">
+        <li>Face-to-face answers to your questions, on your schedule</li>
+        <li>Group dialogue threads as AI news unfolds</li>
+        <li>The room's thinking, captured and rewatchable</li>
+      </ul>
+    </div>
+    <div class="dlg-mock" aria-hidden="true">
+      <div class="vt">
+        <div class="vt-avatar grad-ring">JQ</div>
+        <div class="vt-meta"><b>Joe</b><span>2:14 · today</span></div>
+        <div class="vt-play">▶</div>
+      </div>
+      <div class="vt">
+        <div class="vt-avatar">S</div>
+        <div class="vt-meta"><b>Simon</b><span>0:58 · today</span></div>
+        <div class="vt-play">▶</div>
+      </div>
+      <div class="vt vt-you">
+        <div class="vt-avatar you">You</div>
+        <div class="vt-meta"><b>Your reply</b><span>whenever you're ready</span></div>
+        <div class="vt-play rec">●</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .dialogue {
+    background: var(--ink-950);
+    color: var(--bone-50);
+    padding: 88px 0 96px;
+    position: relative;
+  }
+  .dialogue::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--grad); }
+  .dlg-inner { display: grid; grid-template-columns: 1.15fr 1fr; gap: 72px; align-items: center; }
+  @media (max-width: 900px) { .dlg-inner { grid-template-columns: 1fr; gap: 48px; } }
+  .dlg-copy h2 {
+    font-family: var(--font-display);
+    font-size: clamp(40px, 5vw, 62px);
+    font-weight: 800; letter-spacing: -0.03em; line-height: 1.02;
+    margin: 0 0 24px;
+  }
+  .dlg-copy p { font-size: 18px; line-height: 1.65; color: var(--stone-400); max-width: 560px; }
+  .dlg-points { margin-top: 28px; display: grid; gap: 12px; }
+  .dlg-points li {
+    position: relative; padding-left: 26px;
+    font-size: 15.5px; color: rgba(251,251,252,0.85);
+  }
+  .dlg-points li::before {
+    content: ""; position: absolute; left: 0; top: 9px;
+    width: 14px; height: 1.5px; background: var(--teal-600);
+  }
+  .dlg-mock { display: grid; gap: 14px; }
+  .vt {
+    display: flex; align-items: center; gap: 16px;
+    background: var(--ink-900);
+    border: 1px solid var(--border-dark);
+    border-radius: 14px;
+    padding: 16px 20px;
+  }
+  .vt-you { border-style: dashed; background: transparent; }
+  .vt-avatar {
+    width: 52px; height: 52px; border-radius: 50%; flex-shrink: 0;
+    background: var(--ink-800);
+    color: var(--bone-50);
+    font-family: var(--font-display); font-weight: 800; font-size: 16px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .vt-avatar.grad-ring { box-shadow: 0 0 0 2.5px #36C6A0; }
+  .vt-avatar.you { background: transparent; border: 1.5px dashed var(--stone-500); color: var(--stone-400); font-size: 13px; }
+  .vt-meta { flex: 1; }
+  .vt-meta b { display: block; font-size: 15.5px; font-weight: 600; }
+  .vt-meta span { display: block; font-family: var(--font-mono); font-size: 11.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--stone-400); margin-top: 3px; }
+  .vt-play {
+    width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
+    background: var(--teal-700); color: var(--bone-50);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px;
+  }
+  .vt-play.rec { background: transparent; border: 1.5px dashed var(--stone-500); color: #E0607A; }
+</style>
 
 <footer class="foot">
   <div class="wrap foot-inner">
