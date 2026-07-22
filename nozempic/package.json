@@ -1,0 +1,7 @@
+{
+  "name": "nozempic",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "description": "Nozempic manuscript -> serialized newsletter + social content pipeline"
+}
