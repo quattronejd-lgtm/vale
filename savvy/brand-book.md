@@ -22,9 +22,9 @@ Savvy Lab Solutions is a members-only **buying collective** for dental labs — 
 
 The lockup — designed by Shaana — is the brand's signature. Three parts, always together in primary use:
 
-1. **Wordmark** — *SaVvy* in the brand serif (OC Bartok; see Typography), natural case with the interior capital V.
-2. **Divider** — a thin rule broken by the **chain link**: two interlocked links, the collective drawn as a mark. Labs linked together buy like the biggest.
-3. **Sublabel** — *LAB SOLUTIONS*, uppercase, widely tracked (~0.58em), in the lockup's own light sans. This face lives only in the lockup.
+1. **Wordmark** — *SaVvy* in the brand serif (OC Bartok; see Typography), natural case with the interior capital V. The **y is customized**: its tail is a straight, near-vertical descender with a flat horizontal cut — no curl or ball terminal. Never substitute the stock glyph in the lockup (stock glyphs are fine in running headlines).
+2. **Divider** — a thin rule broken by the **chain link**: two interlocked links, the collective drawn as a mark. Labs linked together buy like the biggest. The link sits slightly **right of the capital V's center** (not centered on the wordmark), and the right rule ends short of the y's descender, leaving clear air between rule and tail.
+3. **Sublabel** — *LAB SOLUTIONS*, uppercase, widely tracked (~0.58em), in the lockup's own light sans, **vertically stretched (~116%)** per the master art. This face lives only in the lockup.
 
 ### Color variants
 
