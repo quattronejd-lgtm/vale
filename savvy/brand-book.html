@@ -342,6 +342,17 @@ footer .lockup{font-size:5px;margin-bottom:22px}
   .hero{padding:72px 0 56px}
   .lockup-sub{letter-spacing:.36em;text-indent:.36em}
 }
+
+@media print{
+  header{position:static;background:var(--bg)}
+  .switch{display:none}
+  .toggle{display:none}
+  section{break-inside:auto;padding-top:48px}
+  .card,.swatch,.img-tile,.logo-stage,.clearspace,.type-specimen{break-inside:avoid}
+  .grid-2,.grid-3{break-inside:avoid}
+  .hero{padding:80px 0 60px}
+  #toast{display:none}
+}
 </style>
 </head>
 <body>
