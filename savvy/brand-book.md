@@ -24,7 +24,13 @@ The lockup — designed by Shaana — is the brand's signature. Three parts, alw
 
 1. **Wordmark** — *SaVvy* in the brand serif (OC Bartok; see Typography), natural case with the interior capital V. The **y is customized**: its tail continues the right stroke's diagonal in one straight line down to a flat horizontal cut — no kink at the junction, no curl, no ball terminal. Never substitute the stock glyph in the lockup (stock glyphs are fine in running headlines).
 2. **Divider** — a thin rule broken by the **chain link**: two interlocked links, the collective drawn as a mark. Labs linked together buy like the biggest. The link sits slightly **right of the capital V's center** (not centered on the wordmark), and the right rule ends short of the y's descender, leaving clear air between rule and tail.
-3. **Sublabel** — *LAB SOLUTIONS*, uppercase, widely tracked (~0.58em), in the lockup's own light sans, **vertically stretched (~116%)** per the master art. This face lives only in the lockup.
+3. **Sublabel** — *LAB SOLUTIONS*, uppercase, tracked ~0.49em, in the lockup's own light sans, **vertically stretched (~116%)** per the master art. This face lives only in the lockup.
+
+### Construction (measured against the master)
+
+- **Horizontal span of the sublabel:** the L centers under the middle of the S; the final S centers under the middle of the y. Tracking is whatever value achieves that span — do not letterspace by taste.
+- **Vertical rhythm:** the gap from the wordmark baseline down to the link equals the gap from the link down to the sublabel. The divider rules ride on the y descender's plane, with the tail finishing just below them.
+- **Divider:** rules are near-equal lengths centered on the chain link; the link sits ~1% of wordmark width right of the capital V's center; the right rule stops short of the y tail with clear air.
 
 ### Color variants
 
@@ -189,4 +195,26 @@ Subject directions:
 
 ---
 
-*Changelog — v1.1 (Aug 2026): integrated the final logo lockup by Shaana (new §02, supersedes all prior logo guidance); retired the Cinzel sublabel reservation; renumbered §03–§09; added interactive HTML edition with onyx/cream theme toggle.*
+## 10 · Website theme tokens
+
+The site ships in both modes with a user-facing toggle (see `brand-book.html` for the working reference — header switch, default dark, choice persisted). Implement both themes from one token set; components never hard-code colors.
+
+| Token | Dark (Onyx) | Light (Cream) |
+|---|---|---|
+| `--bg` | `#0A0A0B` | `#EFE9E0` |
+| `--bg-raised` (cards) | `#161618` | `#F6F2EA` |
+| `--bg-raised-2` (borders/hover) | `#232327` | `#E6DFD2` |
+| `--text` (body) | `#D6D4CE` | `#3A332A` |
+| `--heading` | `#EFE9E0` | `#1A1610` |
+| `--gold-text` (gold lettering, eyebrows, lockup) | `#C9B78C` | `#8A6B2E` |
+| `--pale` (chip text) | `#EADFBF` | `#8A6B2E` |
+| `--muted` | `#9A9A9E` | `#6E675C` |
+| `--hairline` | `rgba(255,255,255,.10)` | `rgba(26,22,16,.14)` |
+| `--accent-hairline` (ghost buttons) | `rgba(201,183,140,.5)` | `rgba(138,107,46,.5)` |
+| `--chip-hairline` | `rgba(201,183,140,.35)` | `rgba(138,107,46,.35)` |
+
+Constants across both themes: primary button is always champagne `#C9B78C` fill with ink `#1A1610` label; imagery and its scrims stay onyx-graded in both modes; card radius 14px; the lockup recolors via the gold-text token (champagne on dark, deep gold on light — never champagne on cream).
+
+---
+
+*Changelog — v1.1 (Aug 2026): integrated the final logo lockup by Shaana (new §02, supersedes all prior logo guidance); retired the Cinzel sublabel reservation; renumbered §03–§09; added interactive HTML edition with onyx/cream theme toggle. Lockup construction refined against the master (custom y, chain offset, divider plane, equal vertical gaps, sublabel span mid-S→mid-y); added §10 website theme tokens for the two-mode build.*
