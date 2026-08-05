@@ -63,7 +63,7 @@ jobs:
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
       PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
     steps:
-      - name: DST-twin guard (delay-invariant — do not switch back to an hour check)
+      - name: DST-twin guard (delay-invariant, staleness-capped)
         id: guard
         working-directory: .
         env:
@@ -73,12 +73,24 @@ jobs:
           # 70+ minutes. A wall-clock "is it currently hour 9/12/15/18" check
           # breaks once the delay crosses an hour boundary — a noon-slot run
           # landing at 1:17pm reads as "not a slot" and self-skips (this is what
-          # happened to today's noon post). Fixed by keying off WHICH cron
-          # string fired (github.event.schedule) — that encodes the intended
-          # slot regardless of how late the run actually executes — and only
-          # checking the CURRENT DST offset to pick the active CDT/CST twin.
-          # DST offset only flips twice a year, so it can't be thrown off by a
-          # same-day scheduling delay the way an hour check can.
+          # happened to one noon post). Fixed by keying off WHICH cron string
+          # fired (github.event.schedule) — that encodes the intended slot
+          # regardless of how late the run executes — and checking the CURRENT
+          # DST offset to pick the active CDT/CST twin, since DST only flips
+          # twice a year and can't be thrown off by a same-day delay.
+          #
+          # CONFIRMED 2026-07-17: that "regardless of delay" guard has no upper
+          # bound, and GitHub's scheduler can delay a LOT more than 70 minutes —
+          # run 29563273381 fired schedule "7 23 * * *" (intended 23:07 UTC /
+          # 6:07pm CDT) at 07:30:04 UTC the next calendar day, 8h23m late, and
+          # posted live at 2:30am CDT. Fixed by ALSO capping staleness: compute
+          # minutes elapsed since this schedule string's actual intended UTC
+          # trigger time and skip if it's beyond a generous margin over the
+          # worst *legitimate* delay seen (70min) — comfortably below an 8-hour
+          # misfire. A skip here is covered by the repository_dispatch backstop
+          # (fires at the exact intended time on an independent clock) or a
+          # manual catch-up dispatch.
+          MAX_STALE_MINUTES=150
           OFFSET="$(TZ=America/Chicago date +%z)"   # -0500 (CDT) or -0600 (CST)
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "run=true" >> "$GITHUB_OUTPUT"
@@ -98,12 +110,26 @@ jobs:
               "7 0 * * *")  EXPECT="-0600" ;;  # 6pm CST
               *) EXPECT="" ;;
             esac
-            if [ -n "$EXPECT" ] && [ "$OFFSET" = "$EXPECT" ]; then
-              echo "run=true" >> "$GITHUB_OUTPUT"
-              echo "Schedule '$SCHEDULE' matches current DST offset ($OFFSET) — running, regardless of delay."
-            else
+            if [ -z "$EXPECT" ] || [ "$OFFSET" != "$EXPECT" ]; then
               echo "run=false" >> "$GITHUB_OUTPUT"
               echo "Schedule '$SCHEDULE' is the off-DST twin (offset $OFFSET, expected $EXPECT) — skipping."
+            else
+              set -- $SCHEDULE
+              CMIN="$1"; CHOUR="$2"
+              NOW_EPOCH="$(date -u +%s)"
+              TODAY_TRIGGER="$(date -u -d "today ${CHOUR}:${CMIN}" +%s)"
+              STALE_SECONDS=$(( NOW_EPOCH - TODAY_TRIGGER ))
+              if [ "$STALE_SECONDS" -lt 0 ]; then
+                STALE_SECONDS=$(( STALE_SECONDS + 86400 ))
+              fi
+              STALE_MINUTES=$(( STALE_SECONDS / 60 ))
+              if [ "$STALE_MINUTES" -le "$MAX_STALE_MINUTES" ]; then
+                echo "run=true" >> "$GITHUB_OUTPUT"
+                echo "Schedule '$SCHEDULE' matches current DST offset ($OFFSET), ${STALE_MINUTES}m late (<= ${MAX_STALE_MINUTES}m cap) — running."
+              else
+                echo "run=false" >> "$GITHUB_OUTPUT"
+                echo "Schedule '$SCHEDULE' matches DST offset ($OFFSET) but is ${STALE_MINUTES}m late (> ${MAX_STALE_MINUTES}m cap) — GitHub's scheduler badly delayed this firing; skipping rather than post at the wrong real-world time."
+              fi
             fi
           fi
 
