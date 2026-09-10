@@ -147,6 +147,10 @@ jobs:
         if: steps.guard.outputs.run == 'true'
         run: npm ci
 
+      - name: Check IG token health
+        if: steps.guard.outputs.run == 'true'
+        run: node scripts/check-token-health.js
+
       - name: Install Chromium
         if: steps.guard.outputs.run == 'true'
         run: npx playwright install --with-deps chromium

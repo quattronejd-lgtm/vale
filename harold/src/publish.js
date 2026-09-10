@@ -246,6 +246,66 @@ export async function publishContainer(creationId) {
 }
 
 /**
+ * Check IG_ACCESS_TOKEN's health WITHOUT mutating it. Never throws for a
+ * live-but-expiring token — returns a report and lets the caller decide how
+ * loud to be. This exists to give advance warning before a slow-motion
+ * expiry shows up as a silent dark day.
+ *
+ * facebook-login (EAA…) tokens expose a real expiry via the read-only
+ * debug_token endpoint (expires_at=0 means it never expires — the right
+ * setup for unattended posting, e.g. a System User token).
+ *
+ * instagram-login (IGAA…) tokens have NO non-mutating way to ask "how many
+ * days are left" — Meta's only introspection for that flavor is the same
+ * call that refreshes (and rotates) the token, which this function
+ * deliberately never does; auto-rotating a production credential is a
+ * separate, bigger decision than a health check. So for this flavor we only
+ * confirm the token still works right now. These tokens are documented to
+ * run ~60 days from issuance/last refresh — track that date manually, or
+ * refresh (via Meta's ig_refresh_token flow) well before the 60-day mark.
+ */
+export async function checkTokenHealth() {
+  const token = requireEnv("IG_ACCESS_TOKEN");
+  const base = graphBase(token);
+  const flavor = tokenFlavor(token);
+
+  if (flavor === "facebook-login") {
+    const res = await fetch(
+      `https://graph.facebook.com/v21.0/debug_token?input_token=${encodeURIComponent(token)}&access_token=${encodeURIComponent(token)}`
+    );
+    const json = await res.json();
+    if (!res.ok || !json.data) {
+      return { flavor, valid: false, expiresInDays: null, detail: `debug_token failed — ${JSON.stringify(json.error || json)}` };
+    }
+    const { is_valid, expires_at } = json.data;
+    if (!is_valid) {
+      return { flavor, valid: false, expiresInDays: null, detail: "debug_token reports is_valid=false" };
+    }
+    if (!expires_at) {
+      return { flavor, valid: true, expiresInDays: null, detail: "never expires" };
+    }
+    const expiresInDays = Math.floor((expires_at * 1000 - Date.now()) / 86_400_000);
+    return { flavor, valid: true, expiresInDays, detail: `expires in ${expiresInDays}d` };
+  }
+
+  // instagram-login: confirm liveness only — see doc comment above for why
+  // we don't call the (mutating) refresh endpoint here.
+  const res = await fetch(`${base}/me?fields=id&access_token=${encodeURIComponent(token)}`);
+  const json = await res.json();
+  if (!res.ok || !json.id) {
+    return { flavor, valid: false, expiresInDays: null, detail: `token no longer works — ${JSON.stringify(json.error || json)}` };
+  }
+  return {
+    flavor,
+    valid: true,
+    expiresInDays: null,
+    detail:
+      "token currently works; instagram-login tokens run ~60 days from issuance/last refresh with no safe " +
+      "way to check the exact countdown — track the issuance date manually",
+  };
+}
+
+/**
  * Full publish: upload -> create container -> publish.
  * @returns {Promise<{ mediaId: string, imageUrl: string }>}
  */
