@@ -5,12 +5,41 @@
 // deterministic-ish) and returns the EXACT substrings to wrap. If no API key is
 // configured it falls back to a transparent heuristic. Every choice is logged.
 
+import { scoreArticle } from "./scoring.js";
+
 const ANTHROPIC_MODEL = process.env.HAROLD_EDITORIAL_MODEL || "claude-haiku-4-5-20251001";
 
-/** Pick the article to post. Newest unposted wins; caller passes fetch() output. */
-export function pickArticle(items) {
+/**
+ * Pick the article to post: highest scoreArticle() total wins, not newest.
+ *
+ * Evening hold: HAROLD.md's timing analysis (and Harold's own breakout
+ * timestamps) both show the 6pm+ window has the highest median reach. So at
+ * any slot OTHER than "evening", the single best-scoring candidate is held
+ * back (the next-best posts instead) — it stays unposted and gets rescored
+ * next run, so it naturally floats to the evening slot's pick instead of
+ * whichever run happened to see it first. Never holds when there's only one
+ * candidate: per HAROLD.md's N2, scoring must never reduce daily output
+ * below the floor — a lower-scored post today beats a held post that never
+ * ships.
+ */
+export function pickArticle(items, { slot = "unknown" } = {}) {
   if (!items || items.length === 0) return null;
-  return items[0];
+
+  const scored = items.map((article) => ({ article, score: scoreArticle(article) }));
+  // stable sort, highest total first (Array#sort is stable in Node — ties
+  // keep fetchArticles' original newest-first order)
+  scored.sort((a, b) => b.score.total - a.score.total);
+  for (const { article, score } of scored) {
+    console.log(
+      `[editorial] score ${score.total} (topic=${score.topic}/${score.topicLabel}, shape=${score.shape}, spec=${score.specificity}): ${article.title}`
+    );
+  }
+
+  if (slot !== "evening" && scored.length > 1) {
+    console.log(`[editorial] slot=${slot} — holding top pick for evening: ${scored[0].article.title}`);
+    return scored[1].article;
+  }
+  return scored[0].article;
 }
 
 // ---- orange-word selection ----
