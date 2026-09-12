@@ -1,0 +1,66 @@
+/* ============================================================
+   Animal Spotlight card — DRAFT, 12 Sep 2026, NOT approved yet.
+   Loaded after card.css: reuses its variables/fonts/.kw gradient
+   mechanism, only overrides layout for this variant's positions.
+   ============================================================ */
+
+/* Badge moves out of the way of the new top tag: small, top-left. */
+.spotlight-badge {
+  top: 40px;
+  left: 40px;
+  transform: none;
+  width: 64px;
+  height: 64px;
+}
+
+/* Slightly stronger top shade than the standard card's scrim, since this
+   layout puts readable content (the tag) near the top too, not just the
+   bottom. */
+.spotlight-scrim {
+  background:
+    linear-gradient(to bottom,
+      rgba(0, 0, 0, 0.55) 0%,
+      rgba(0, 0, 0, 0.15) 22%,
+      rgba(0, 0, 0, 0.10) 46%,
+      rgba(0, 0, 0, 0.55) 72%,
+      rgba(0, 0, 0, 0.85) 100%);
+}
+
+/* The pill tag: same orange->gold gradient as the keyword highlight, so
+   the new element reads as part of the existing brand system rather than
+   a new color introduced from nowhere. */
+.tag {
+  position: absolute;
+  top: 132px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 14px 36px;
+  border-radius: 999px;
+  background: linear-gradient(to right, var(--gnn-orange) 0%, var(--gnn-gold) 100%);
+  color: #fff;
+  font-family: var(--headline-font);
+  font-weight: 400;
+  text-transform: uppercase;
+  font-size: 30px;
+  letter-spacing: 1px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+  white-space: nowrap;
+}
+
+/* Headline moves from bottom-anchored to vertically centered -- the
+   compositional difference Joe liked in the reference screenshots. */
+.spotlight-headline-wrap {
+  top: 50%;
+  bottom: auto;
+  left: var(--safe-left);
+  right: var(--safe-right);
+  transform: translateY(-50%);
+  max-height: 900px;
+}
+
+.spotlight-headline {
+  /* same face/gradient/uppercase treatment as the standard card --
+     only position changes for this variant, not typography. */
+  transform: scaleY(1.2);
+  transform-origin: center;
+}

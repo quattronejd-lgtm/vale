@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>GNN Spotlight Card</title>
+  <link rel="stylesheet" href="card.css" />
+  <link rel="stylesheet" href="spotlight-card.css" />
+</head>
+<body>
+  <!--
+    ANIMAL SPOTLIGHT TEMPLATE — first draft, 12 Sep 2026, NOT yet approved.
+    A second card style reserved for animal/pet-topic posts (scoring.js
+    TOPIC=3), inspired by an older GNN carousel-cover style Joe liked --
+    rebuilt here as a single image (no carousel; see HAROLD.md N3) using
+    GNN's actual existing brand assets (flower logo, Lilita One, the
+    orange->gold keyword gradient) rather than guessing at unclear details
+    from a compressed screenshot. Do not wire into the live pipeline until
+    Joe has actually seen rendered samples and signed off -- this is a
+    proposal, not a second locked template yet.
+
+    render.js (renderSpotlight) fills:
+      #hero      -> img src (hero photo; same source vetHero() already picked)
+      #headline  -> innerHTML (with <span class="kw"> around orange words,
+                    same mechanism as the standard card)
+    and runs the same auto-fit routine, retargeted at this layout's box.
+  -->
+  <div class="card spotlight" id="card">
+    <img class="hero" id="hero" alt="" />
+    <div class="scrim spotlight-scrim"></div>
+
+    <div class="tag" id="tag">Animal Spotlight</div>
+
+    <div class="badge spotlight-badge" id="badge" aria-label="Good News Network">
+      <img src="assets/gnn-flower.png" alt="" width="100%" height="100%" />
+    </div>
+
+    <div class="headline-wrap spotlight-headline-wrap" id="headline-wrap">
+      <h1 class="headline spotlight-headline" id="headline"><!-- injected --></h1>
+    </div>
+  </div>
+</body>
+</html>
