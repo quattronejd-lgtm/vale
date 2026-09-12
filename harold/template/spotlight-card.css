@@ -31,8 +31,12 @@
    a new color introduced from nowhere. */
 .tag {
   position: absolute;
-  top: 132px;
+  /* Sits low enough to bite into the top of the headline block below --
+     z-index above the headline so the overlap actually shows (the tag
+     sitting ON TOP of the text, not tucked behind it). */
+  top: 330px;
   left: 50%;
+  z-index: 2;
   /* Hand-placed-sticker tilt, matching the reference screenshots -- order
      matters: center first, THEN rotate, so it tilts in place instead of
      swinging off-center. */
@@ -50,20 +54,30 @@
   white-space: nowrap;
 }
 
-/* Headline moves from bottom-anchored to vertically centered -- the
-   compositional difference Joe liked in the reference screenshots. */
+/* Headline moves from bottom-anchored to upper/center-weighted -- short
+   phrases now (2-4 words, see editorial.js writeSpotlightHeadline), so the
+   block sits higher, with its TOP intentionally underlapping the tag above
+   (z-index 1 < the tag's 2) for the layered-sticker composition Joe asked
+   for, instead of the two sitting stacked with a gap between them. */
 .spotlight-headline-wrap {
-  top: 50%;
-  bottom: auto;
+  top: 300px;
+  /* Explicit height, not bottom+auto -- an absolutely positioned box with
+     top set and bottom:auto does NOT reliably shrink-to-fit its content
+     across engines; measured it actually undersizing below its own
+     content's height, which made fitHeadlineInPage's overflow check
+     trigger far earlier than intended. An explicit height is a stable,
+     known ceiling to fit type into instead. */
+  height: 800px;
+  max-height: 800px; /* base .headline-wrap sets max-height:720px -- override it too, or it wins over the explicit height above */
   left: var(--safe-left);
   right: var(--safe-right);
-  transform: translateY(-50%);
-  max-height: 900px;
+  z-index: 1;
 }
 
 .spotlight-headline {
   /* same face/gradient/uppercase treatment as the standard card --
-     only position changes for this variant, not typography. */
+     only position/size ceiling changes for this variant (see
+     data-max-font on #headline-wrap and render.js's fitHeadlineInPage). */
   transform: scaleY(1.2);
-  transform-origin: center;
+  transform-origin: top center;
 }

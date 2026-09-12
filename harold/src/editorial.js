@@ -268,6 +268,71 @@ export async function writeBlurb({ title, excerpt }) {
   return blurb;
 }
 
+// ---- spotlight headline (Animal Spotlight template only) ----
+//
+// The standard card's rule is "headline = article headline, verbatim or
+// trimmed" — right for a news card, wrong for the Spotlight layout, where
+// Joe asked for bigger, punchier, fewer words (closer to "STILL GOING
+// STRONG" than a full sentence). This is a DISTINCT on-image headline for
+// that template only — the real article title still drives the Instagram
+// caption/link-in-bio text; this is not a replacement for it anywhere else.
+
+const SPOTLIGHT_HEADLINE_PROMPT = (title, excerpt) => `You write short on-image headlines for the
+Good News Network's "Animal Spotlight" Instagram card. The full article headline is below — distill
+it into the on-image text.
+
+Rules:
+- 2 to 4 words. Uppercase.
+- Capture the delight/payoff, not the mechanics — closer to "STILL GOING STRONG" or "HOME AT LAST"
+  than a restated sentence.
+- Must be a phrase a reader would still recognize as being about THIS story, not a generic caption
+  that could sit under any animal photo.
+- No punctuation except an exclamation point if it genuinely earns one (rare).
+
+Headline: ${JSON.stringify(title)}
+Article excerpt: ${JSON.stringify(excerpt || "(none)")}
+
+Respond with ONLY the short phrase. No quotes, no prose about the task.`;
+
+/** Heuristic fallback: the shortest usable orange span, else the first 3 words. */
+function spotlightHeadlineHeuristic(title, orangeWords = []) {
+  const span = orangeWords.find((w) => w && w.split(/\s+/).length <= 4);
+  if (span) return span.toUpperCase();
+  return title.split(/\s+/).slice(0, 3).join(" ").toUpperCase();
+}
+
+/**
+ * Short (2-4 word) punchy on-image headline for the Animal Spotlight
+ * template. LLM when available, else the heuristic above.
+ */
+export async function writeSpotlightHeadline({ title, excerpt, orangeWords = [] }) {
+  const key = (process.env.ANTHROPIC_API_KEY || "").replace(/\s+/g, "");
+  if (key) {
+    try {
+      const { default: Anthropic } = await import("@anthropic-ai/sdk");
+      const client = new Anthropic({ apiKey: key });
+      const msg = await client.messages.create({
+        model: ANTHROPIC_MODEL,
+        max_tokens: 40,
+        temperature: 0.3,
+        messages: [{ role: "user", content: SPOTLIGHT_HEADLINE_PROMPT(title, excerpt) }],
+      });
+      const text = msg.content.map((b) => (b.type === "text" ? b.text : "")).join("").trim();
+      const phrase = text.replace(/^["']|["']$/g, "").toUpperCase();
+      if (phrase && phrase.split(/\s+/).length <= 5) {
+        console.log(`[editorial] spotlight headline (${ANTHROPIC_MODEL}): ${phrase}`);
+        return phrase;
+      }
+      console.warn(`[editorial] spotlight headline LLM returned something unusable (${JSON.stringify(text)}); using heuristic`);
+    } catch (err) {
+      console.warn(`[editorial] spotlight headline LLM failed (${err.message}); using heuristic`);
+    }
+  }
+  const phrase = spotlightHeadlineHeuristic(title, orangeWords);
+  console.log(`[editorial] spotlight headline (heuristic): ${phrase}`);
+  return phrase;
+}
+
 /** Build the Instagram caption: headline → blurb → 🔗 CTA → hashtags. */
 export async function writeCaption(article) {
   const blurb = await writeBlurb(article);

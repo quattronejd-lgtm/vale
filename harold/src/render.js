@@ -107,7 +107,10 @@ function fitHeadlineInPage() {
   const box = document.getElementById("headline-wrap");
   const lineHeight = 0.92; // must match .headline line-height in card.css
   const STRETCH = 1.25; // must match .headline scaleY in card.css
-  const MAX = 172;
+  // Templates can raise the ceiling via data-max-font on #headline-wrap
+  // (the Spotlight layout wants bigger type for its much shorter phrases);
+  // the locked card doesn't set it, so it keeps the original 172 cap.
+  const MAX = Number(box.dataset.maxFont) || 172;
   const MIN = 40;
   const maxHeight = box.clientHeight; // capped by max-height in CSS
 
