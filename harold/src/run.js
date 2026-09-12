@@ -8,7 +8,7 @@ import { fetchArticles, markPosted, DEFAULT_LEDGER } from "./fetch.js";
 import { pickArticle, editorialize } from "./editorial.js";
 import { vetHero } from "./hero.js";
 import { render } from "./render.js";
-import { publishCard } from "./publish.js";
+import { publishCard, publishStory } from "./publish.js";
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
@@ -116,7 +116,20 @@ export async function main(argv = process.argv.slice(2)) {
   const { mediaId, imageUrl } = await publishCard({ imagePath: OUT, caption });
   await markPosted({ ...article, postedAt: new Date().toISOString() }, DEFAULT_LEDGER);
   console.log(`[run] LIVE post complete. media=${mediaId} url=${imageUrl}`);
-  return { status: "posted", mediaId, article };
+
+  // 5) cross-post to Stories (best-effort): the feed post above is the one
+  // that matters and has already succeeded and been logged to the ledger by
+  // this point, so a Stories failure is logged and swallowed, never thrown
+  // -- it must not turn a successful post into a failed run.
+  let storyMediaId = null;
+  try {
+    const story = await publishStory({ imageUrl });
+    storyMediaId = story.mediaId;
+  } catch (err) {
+    console.warn(`[run] story cross-post failed (feed post already succeeded): ${err.message}`);
+  }
+
+  return { status: "posted", mediaId, storyMediaId, article };
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
