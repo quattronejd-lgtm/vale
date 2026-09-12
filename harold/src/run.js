@@ -5,9 +5,10 @@
 //   node src/run.js --dry-run  # same, explicit
 //   node src/run.js --live     # actually publish to Instagram
 import { fetchArticles, markPosted, DEFAULT_LEDGER } from "./fetch.js";
-import { pickArticle, editorialize } from "./editorial.js";
+import { pickArticle, pickOrangeWords, writeSpotlightHeadline, writeCaption } from "./editorial.js";
+import { scoreArticle } from "./scoring.js";
 import { vetHero } from "./hero.js";
-import { render } from "./render.js";
+import { render, SPOTLIGHT_TEMPLATE } from "./render.js";
 import { publishCard, publishStory } from "./publish.js";
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
@@ -90,8 +91,27 @@ export async function main(argv = process.argv.slice(2)) {
     throw new Error("[run] selected article has no hero image; aborting.");
   }
 
-  // 2) editorial
-  const { headline, orangeWords, caption } = await editorialize(article);
+  // 2) editorial — Animal Spotlight template for animal/pet-topic picks
+  // (approved by Joe 12 Sep 2026): short punchy on-image phrase instead of
+  // the full headline, on the dedicated layout. The real article title
+  // still drives the Instagram caption below the image either way — this
+  // only changes what's burned into the picture.
+  const isAnimalSpotlight = scoreArticle(article).topicLabel === "animals & pets";
+  let headline, orangeWords, template;
+  if (isAnimalSpotlight) {
+    const fullHeadlineOrange = await pickOrangeWords(article.title.toUpperCase());
+    headline = await writeSpotlightHeadline({ ...article, orangeWords: fullHeadlineOrange });
+    orangeWords = await pickOrangeWords(headline);
+    template = SPOTLIGHT_TEMPLATE;
+    console.log(`[run] Animal Spotlight template selected`);
+  } else {
+    headline = (article.title || "").toUpperCase();
+    orangeWords = await pickOrangeWords(headline);
+  }
+  // Always the real article title + blurb, regardless of template -- one
+  // call either way (editorialize() is NOT used here specifically to avoid
+  // calling writeCaption twice).
+  const caption = await writeCaption(article);
 
   // 2b) photo-editor gate: judge the hero, maybe substitute stock
   const hero = await vetHero({ heroImage: article.heroImage, title: article.title });
@@ -102,6 +122,7 @@ export async function main(argv = process.argv.slice(2)) {
     headline,
     orangeWords,
     out: OUT,
+    template,
   });
   console.log(`[run] rendered ${rendered.path} (${rendered.width}×${rendered.height})`);
 

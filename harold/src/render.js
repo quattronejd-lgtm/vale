@@ -14,6 +14,9 @@ import path from "node:path";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const TEMPLATE = path.resolve(__dirname, "../template/card.html");
+// DRAFT, not yet approved -- see template/spotlight-card.html header comment.
+// Not used by run.js until Joe has reviewed rendered samples.
+export const SPOTLIGHT_TEMPLATE = path.resolve(__dirname, "../template/spotlight-card.html");
 
 export const CARD_WIDTH = 1080;
 export const CARD_HEIGHT = 1350;
@@ -104,7 +107,10 @@ function fitHeadlineInPage() {
   const box = document.getElementById("headline-wrap");
   const lineHeight = 0.92; // must match .headline line-height in card.css
   const STRETCH = 1.25; // must match .headline scaleY in card.css
-  const MAX = 172;
+  // Templates can raise the ceiling via data-max-font on #headline-wrap
+  // (the Spotlight layout wants bigger type for its much shorter phrases);
+  // the locked card doesn't set it, so it keeps the original 172 cap.
+  const MAX = Number(box.dataset.maxFont) || 172;
   const MIN = 40;
   const maxHeight = box.clientHeight; // capped by max-height in CSS
 
@@ -131,6 +137,7 @@ function fitHeadlineInPage() {
  * @param {string[]} opts.orangeWords substrings to recolor orange
  * @param {string} opts.out         output JPEG path
  * @param {number} [opts.quality=92]
+ * @param {string} [opts.template]  template HTML file to load (default: the locked card)
  */
 export async function render({
   heroImage,
@@ -138,6 +145,7 @@ export async function render({
   orangeWords = [],
   out,
   quality = 92,
+  template = TEMPLATE,
 }) {
   if (!headline) throw new Error("render: headline is required");
   if (!out) throw new Error("render: out path is required");
@@ -152,7 +160,7 @@ export async function render({
       deviceScaleFactor: 1,
     });
 
-    await page.goto(pathToFileURL(TEMPLATE).href, { waitUntil: "load" });
+    await page.goto(pathToFileURL(template).href, { waitUntil: "load" });
 
     // Inject content.
     await page.evaluate(
