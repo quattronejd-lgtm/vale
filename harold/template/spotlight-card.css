@@ -33,7 +33,10 @@
   position: absolute;
   top: 132px;
   left: 50%;
-  transform: translateX(-50%);
+  /* Hand-placed-sticker tilt, matching the reference screenshots -- order
+     matters: center first, THEN rotate, so it tilts in place instead of
+     swinging off-center. */
+  transform: translateX(-50%) rotate(-4deg);
   padding: 14px 36px;
   border-radius: 999px;
   background: linear-gradient(to right, var(--gnn-orange) 0%, var(--gnn-gold) 100%);
