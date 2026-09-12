@@ -318,3 +318,43 @@ export async function publishCard({ imagePath, caption }) {
   console.log(`[publish] published media: ${mediaId}`);
   return { mediaId, imageUrl };
 }
+
+/**
+ * Create a Stories media container. Stories don't render a caption the way
+ * feed posts do, so none is sent — the headline is already burned into the
+ * image by render.js. NOTE: the card is rendered 1080x1350 (4:5, feed
+ * aspect); Stories' native canvas is 9:16. Instagram accepts the upload and
+ * letterboxes it (bars, not a crop or an error) rather than rejecting it —
+ * functional today, not a native Stories look. A dedicated 9:16 render is a
+ * deliberate follow-up, not done here.
+ */
+export async function createStoryContainer(imageUrl) {
+  const igUser = await igUserId();
+  const token = requireEnv("IG_ACCESS_TOKEN");
+
+  const body = new URLSearchParams({
+    image_url: imageUrl,
+    media_type: "STORIES",
+    access_token: token,
+  });
+  const res = await fetch(`${graphBase(token)}/${igUser}/media`, { method: "POST", body });
+  const json = await res.json();
+  if (!res.ok || !json.id) {
+    throw new Error(`publish: story container create failed — ${JSON.stringify(json.error || json)}`);
+  }
+  return json.id;
+}
+
+/**
+ * Cross-post the already-published feed card to Stories. Reuses the SAME
+ * imageUrl publishCard() already uploaded to Netlify -- no second upload.
+ * @returns {Promise<{ mediaId: string }>}
+ */
+export async function publishStory({ imageUrl }) {
+  const creationId = await createStoryContainer(imageUrl);
+  console.log(`[publish] story container created: ${creationId}`);
+  await waitForContainer(creationId);
+  const mediaId = await publishContainer(creationId);
+  console.log(`[publish] published story: ${mediaId}`);
+  return { mediaId };
+}
