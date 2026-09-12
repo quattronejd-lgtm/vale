@@ -28,6 +28,21 @@ function parseArgs(argv) {
   return { dryRun: !live };
 }
 
+const SLOTS = new Set(["morning", "midday", "afternoon", "evening"]);
+
+/** Which of the 4 daily posting windows this run falls in, America/Chicago wall clock. */
+function currentSlot(now = new Date()) {
+  const override = (process.env.HAROLD_SLOT || "").trim().toLowerCase();
+  if (SLOTS.has(override)) return override;
+  const hour = Number(
+    new Intl.DateTimeFormat("en-US", { timeZone: "America/Chicago", hour: "numeric", hour12: false }).format(now)
+  );
+  if (hour < 11) return "morning";
+  if (hour < 14) return "midday";
+  if (hour < 17) return "afternoon";
+  return "evening";
+}
+
 /** Minutes since the ledger's most recent post, or Infinity if there is none. */
 async function minutesSinceLastPost(ledgerPath) {
   let ledger;
@@ -61,8 +76,10 @@ export async function main(argv = process.argv.slice(2)) {
   }
 
   // 1) fetch
+  const slot = currentSlot();
+  console.log(`[run] slot: ${slot}`);
   const items = await fetchArticles({ limit: 5 });
-  const article = pickArticle(items);
+  const article = pickArticle(items, { slot });
   if (!article) {
     console.log("[run] no unposted articles — nothing to do.");
     return { status: "empty" };

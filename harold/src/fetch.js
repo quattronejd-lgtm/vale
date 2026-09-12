@@ -94,6 +94,8 @@ const RECURRING_FEATURE_PATTERNS = [
   /quote of the day/i,
   /morning journey/i,
   /good news roundup/i,
+  /horoscope/i,
+  /free will astrology/i,
 ];
 
 export function isRecurringFeature(title = "") {
