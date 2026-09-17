@@ -138,17 +138,25 @@ export async function main(argv = process.argv.slice(2)) {
   await markPosted({ ...article, postedAt: new Date().toISOString() }, DEFAULT_LEDGER);
   console.log(`[run] LIVE post complete. media=${mediaId} url=${imageUrl}`);
 
-  // 5) cross-post to Stories (best-effort): the feed post above is the one
-  // that matters and has already succeeded and been logged to the ledger by
-  // this point, so a Stories failure is logged and swallowed, never thrown
-  // -- it must not turn a successful post into a failed run.
+  // 5) cross-post to Stories -- DISABLED 2026-09-17 (Joe caught it live):
+  // Instagram does NOT letterbox a 4:5 image into the 9:16 Stories canvas
+  // the way assumed when this shipped -- it COVER-scales (fills the frame,
+  // crops overflow) rather than CONTAIN-scales (bars, nothing lost). Net
+  // effect: the headline gets cropped off both left and right edges,
+  // unreadable. Confirmed on a real posted Story, not a guess. Every post
+  // since Stories cross-posting shipped has been doing this. Off until a
+  // real 9:16-native render exists (see harold/template/spotlight-card.*
+  // for the pattern -- a distinct template, not a scaled reuse of the feed
+  // card) -- that's real follow-up work, not a quick fix to rush blind.
   let storyMediaId = null;
+  /*
   try {
     const story = await publishStory({ imageUrl });
     storyMediaId = story.mediaId;
   } catch (err) {
     console.warn(`[run] story cross-post failed (feed post already succeeded): ${err.message}`);
   }
+  */
 
   return { status: "posted", mediaId, storyMediaId, article };
 }
