@@ -90,7 +90,22 @@ jobs:
           # misfire. A skip here is covered by the repository_dispatch backstop
           # (fires at the exact intended time on an independent clock) or a
           # manual catch-up dispatch.
-          MAX_STALE_MINUTES=150
+          #
+          # RAISED 2026-09-17: the 150m cap itself became the problem — GitHub's
+          # scheduler delay has degraded further than the 70min worst-case this
+          # cap was calibrated against. All three real slots that day (9am/12pm/
+          # 3pm CDT) arrived 160-250m late and got thrown out by the guard,
+          # producing a ~23-hour real outage with the job showing "success" the
+          # whole time (skipped, not failed -- easy to miss). Also confirmed:
+          # the repository_dispatch backstop referenced above has never actually
+          # fired even once in this repo's history -- the external cron service
+          # it depends on was never set up, so in practice it provides NO
+          # protection today, despite existing in code. Until that's actually
+          # wired up, this cap is the only thing standing between "GitHub is
+          # slow" and "dark day" -- raised to 300m (still well below the 503m/
+          # 8h23m catastrophic case above) to buy headroom against further
+          # scheduler degradation without reintroducing the 2:30am bug.
+          MAX_STALE_MINUTES=300
           OFFSET="$(TZ=America/Chicago date +%z)"   # -0500 (CDT) or -0600 (CST)
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "run=true" >> "$GITHUB_OUTPUT"
