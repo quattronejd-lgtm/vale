@@ -339,6 +339,23 @@ export async function writeCaption(article) {
   return `${article.title}${blurbBlock}\n\n🔗 Full story — link in bio.\n\n${HASHTAGS}`;
 }
 
+/**
+ * Build the Facebook caption: headline → blurb → a REAL clickable link.
+ * Deliberately NOT the Instagram caption reused verbatim -- Instagram
+ * suppresses links, so "link in bio" is the right CTA there; Facebook does
+ * the opposite. HAROLD.md §7 found links return 10.9 link clicks per 1,000
+ * views against 4.4 for photos on this account, and Facebook is the one
+ * surface that reliably sends people back to the site -- shipping the
+ * Instagram CTA here would throw away the one thing Facebook is actually
+ * good for. No hashtag block either; it isn't a Facebook convention the
+ * way it is on Instagram, and the data gives no reason to add one.
+ */
+export async function writeFacebookCaption(article) {
+  const blurb = await writeBlurb(article);
+  const blurbBlock = blurb ? `\n\n${blurb}` : "";
+  return `${article.title}${blurbBlock}\n\n${article.link}`;
+}
+
 /** Convenience: run the editorial stage for one article. */
 export async function editorialize(article) {
   const headline = (article.title || "").toUpperCase();

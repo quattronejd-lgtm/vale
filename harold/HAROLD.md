@@ -326,6 +326,33 @@ Update this file's numbers in place. Append the week's finding, the change made,
 
 ---
 
+## 6.5. Facebook cross-post (built 28 Oct 2026, off by default)
+
+Stephanie Sharis (GNN CEO) flagged that Facebook posting dropped entirely when Andy's handoff of that
+duty never happened, and asked for the LOE on Harold covering it. Most of the pipeline is already
+platform-agnostic, so the code shipped the same day: `publishToFacebook()` in `publish.js` posts the
+same rendered card to the Facebook Page via a photo post, and `writeFacebookCaption()` in `editorial.js`
+gives it a REAL clickable link instead of Instagram's "link in bio" — section 7's own data (links beat
+photos on referral clicks) says copying the Instagram caption verbatim would throw away the one thing
+Facebook is actually good for. Wired into `run.js` as a non-blocking cross-post, same discipline as the
+(disabled) Stories cross-post: a Facebook failure never undoes a successful Instagram post.
+
+**It is OFF today and will stay off until `HAROLD_FACEBOOK_ENABLED` is set to `true`** (repo variable,
+same mechanism as `HAROLD_LIVE`), because `IG_ACCESS_TOKEN` is currently an instagram-login (IGAA)
+token, which has zero Page access by Meta's design — not a missing checkbox, a different token flavor
+entirely. Turning this on needs a facebook-login (EAA) token with `pages_manage_posts`, generated via
+the same "API setup with Facebook login" flow used for the Sep 2026 IG token rotation; `publish.js`
+already auto-detects token flavor, so one new token covers both platforms. `scripts/check-facebook-access.js`
+(read-only, posts nothing) confirms exactly this on every run and will report `canPost: true` the moment
+the new token is in place — flip the repo variable once it does, no further code change needed.
+
+This covers the stopgap Stephanie asked for (same card on both platforms), not the dedicated
+Facebook-native agent she floated as a possible future step, and not the Facebook video lane (section
+7c) — that's still the single highest-leverage, unbuilt opportunity on the whole map, and a materially
+bigger project than this.
+
+---
+
 ## 7. Facebook — the open lane
 
 Facebook is run by a person (Andy/Andrew — Geri's son), not by Harold, for the full trailing year. Two things changed there in this window and both matter to Harold's roadmap.

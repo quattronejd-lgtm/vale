@@ -62,6 +62,14 @@ jobs:
       NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
       PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
+      # Off by default -- see scripts/check-facebook-access.js and HAROLD.md.
+      # IG_ACCESS_TOKEN is currently an instagram-login (IGAA) token, which
+      # has NO Page access at all by design. Flip this repo variable to
+      # 'true' only once IG_ACCESS_TOKEN is a facebook-login (EAA) token
+      # with pages_manage_posts (same Meta App Dashboard flow used for the
+      # Sep 2026 IG token rotation) -- the code already auto-detects that
+      # flavor and will then cross-post the same card to the Facebook Page.
+      HAROLD_FACEBOOK_ENABLED: ${{ vars.HAROLD_FACEBOOK_ENABLED }}
     steps:
       - name: DST-twin guard (delay-invariant, staleness-capped)
         id: guard

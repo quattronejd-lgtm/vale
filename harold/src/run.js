@@ -5,11 +5,11 @@
 //   node src/run.js --dry-run  # same, explicit
 //   node src/run.js --live     # actually publish to Instagram
 import { fetchArticles, markPosted, DEFAULT_LEDGER } from "./fetch.js";
-import { pickArticle, pickOrangeWords, writeSpotlightHeadline, writeCaption } from "./editorial.js";
+import { pickArticle, pickOrangeWords, writeSpotlightHeadline, writeCaption, writeFacebookCaption } from "./editorial.js";
 import { scoreArticle } from "./scoring.js";
 import { vetHero } from "./hero.js";
 import { render, SPOTLIGHT_TEMPLATE } from "./render.js";
-import { publishCard, publishStory } from "./publish.js";
+import { publishCard, publishStory, publishToFacebook } from "./publish.js";
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
@@ -158,7 +158,24 @@ export async function main(argv = process.argv.slice(2)) {
   }
   */
 
-  return { status: "posted", mediaId, storyMediaId, article };
+  // 6) cross-post to Facebook -- off by default (HAROLD_FACEBOOK_ENABLED repo
+  // variable). Requested by Stephanie Sharis 28 Oct 2026 after Facebook went
+  // dark when Andy's posting handoff never happened. Non-blocking: a feed
+  // post that already succeeded on Instagram must never be undone by a
+  // Facebook failure, same discipline as the Stories cross-post above.
+  let facebookPostId = null;
+  if ((process.env.HAROLD_FACEBOOK_ENABLED || "").trim().toLowerCase() === "true") {
+    try {
+      const fbCaption = await writeFacebookCaption(article);
+      const fb = await publishToFacebook({ imageUrl, caption: fbCaption });
+      facebookPostId = fb.postId;
+      console.log(`[run] Facebook cross-post complete. post=${fb.postId}`);
+    } catch (err) {
+      console.warn(`[run] Facebook cross-post failed (Instagram post already succeeded): ${err.message}`);
+    }
+  }
+
+  return { status: "posted", mediaId, storyMediaId, facebookPostId, article };
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {

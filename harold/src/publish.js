@@ -428,6 +428,63 @@ export async function checkConversionHealth() {
 }
 
 /**
+ * Resolve the Facebook Page this token manages (not the linked IG account --
+ * see igUserId() for that). Only a facebook-login (EAA) token has any Page
+ * access; an instagram-login (IGAA) token has none, by Meta's own design,
+ * regardless of granted scopes -- see requireFacebookAccess().
+ */
+async function facebookPageId() {
+  const token = requireEnv("IG_ACCESS_TOKEN");
+  if (tokenFlavor(token) !== "facebook-login") {
+    throw new Error(
+      "publish: Facebook cross-post needs a facebook-login (EAA) token -- IG_ACCESS_TOKEN is currently " +
+        "instagram-login (IGAA), which has no Page access at all. Generate a facebook-login token with " +
+        "pages_manage_posts via Meta's \"API setup with Facebook login\" flow (same flow used for the " +
+        "Sep 2026 IG token rotation) and replace IG_ACCESS_TOKEN with it -- the same token can post both."
+    );
+  }
+  const base = graphBase(token);
+  const res = await fetch(`${base}/me/accounts?fields=name,instagram_business_account&access_token=${encodeURIComponent(token)}`);
+  const json = await res.json();
+  if (!res.ok) {
+    throw new Error(`publish: could not list Pages for Facebook cross-post — ${JSON.stringify(json.error || json)}`);
+  }
+  const page = (json.data || []).find((p) => p.instagram_business_account?.id) || json.data?.[0];
+  if (!page?.id) {
+    throw new Error("publish: Facebook cross-post found no Page on this token.");
+  }
+  return page.id;
+}
+
+/**
+ * Cross-post the same rendered card to the Facebook Page, as a photo post
+ * with a REAL link -- not Instagram's "link in bio" CTA. Facebook is the one
+ * surface that reliably sends people back to the site (HAROLD.md §7), and a
+ * clickable link is the whole reason to post there; copying Instagram's
+ * caption verbatim would throw that away. Simpler than Instagram's publish
+ * flow -- Facebook's /photos endpoint creates and publishes in one call, no
+ * container/poll step.
+ * @returns {Promise<{ postId: string, pageId: string }>}
+ */
+export async function publishToFacebook({ imageUrl, caption }) {
+  const token = requireEnv("IG_ACCESS_TOKEN");
+  const pageId = await facebookPageId();
+
+  const body = new URLSearchParams({
+    url: imageUrl,
+    caption: caption || "",
+    published: "true",
+    access_token: token,
+  });
+  const res = await fetch(`${graphBase(token)}/${pageId}/photos`, { method: "POST", body });
+  const json = await res.json();
+  if (!res.ok || !json.id) {
+    throw new Error(`publish: Facebook photo post failed — ${JSON.stringify(json.error || json)}`);
+  }
+  return { postId: json.id, pageId };
+}
+
+/**
  * Full publish: upload -> create container -> publish.
  * @returns {Promise<{ mediaId: string, imageUrl: string }>}
  */
