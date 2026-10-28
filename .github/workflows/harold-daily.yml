@@ -166,6 +166,10 @@ jobs:
         if: steps.guard.outputs.run == 'true'
         run: node scripts/check-token-health.js
 
+      - name: Check conversion health (follows/10k reach, not output)
+        if: steps.guard.outputs.run == 'true'
+        run: node scripts/check-conversion-health.js
+
       - name: Install Chromium
         if: steps.guard.outputs.run == 'true'
         run: npx playwright install --with-deps chromium

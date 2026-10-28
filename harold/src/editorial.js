@@ -61,8 +61,7 @@ Rules:
   (e.g. "WINDIEST").
 - Never start or end the span on filler ("THE", "A", "TO", "OF", "AND", "WITH").
 - Prefer the fullest emotionally resonant run: "POWER 6 MILLION HOMES" beats "6 MILLION";
-  "LOWER RISKS OF LIVER CANCER" beats "LOWER RISKS". This span is the phrase someone would
-  repeat back if they were telling a friend about the story — optimize for that.
+  "LOWER RISKS OF LIVER CANCER" beats "LOWER RISKS".
 
 Headline: ${JSON.stringify(headline)}
 
@@ -192,25 +191,29 @@ export async function pickOrangeWords(headline) {
 
 // ---- caption ----
 //
-// THE COPY CONSTITUTION (approved 2026-07-15, Joe; shareability added 2026-07-27):
+// THE COPY CONSTITUTION (approved 2026-07-15, Joe):
 //   1. Complete sentences only — the blurb NEVER cuts off mid-thought,
 //      never ends in "…".
 //   2. 1–2 sentences, ~120–280 characters. Lead with the human hook (who
 //      it happened to / why it feels good), not the mechanics.
-//   3. Write for the send, not just the read: DM shares are the single
-//      strongest driver of reach beyond existing followers (3-5x the weight
-//      of likes) — so the blurb should read like something worth forwarding
-//      to one specific person (a parent, a fellow dog owner, whoever the
-//      story is obviously *for*), earned through the human specificity of
-//      the writing. This is a lens on HOW rule 2 gets written, never a
-//      license to break rules 1, 4, or 5 — a bolted-on "tag someone" CTA is
-//      clickbait, not shareability, and is explicitly banned.
-//   4. Warm, plain, conversational voice. No clickbait, no ALL-CAPS words,
+//   3. Warm, plain, conversational voice. No clickbait, no ALL-CAPS words,
 //      no stacked exclamation marks, no "you won't believe".
-//   5. No emojis in the blurb (the 🔗 CTA line is the caption's only emoji)
+//   4. No emojis in the blurb (the 🔗 CTA line is the caption's only emoji)
 //      and no hashtags outside the fixed tag block.
-//   6. Don't repeat the headline verbatim — the blurb adds, it doesn't echo.
-//   7. Structure is fixed: headline → blurb → 🔗 link-in-bio CTA → hashtags.
+//   5. Don't repeat the headline verbatim — the blurb adds, it doesn't echo.
+//   6. Structure is fixed: headline → blurb → 🔗 link-in-bio CTA → hashtags.
+//
+// RETIRED 2026-10-28 (see INCIDENTS.md): a "shareability" rule 3 ran from
+// 2026-08-05 to 2026-10-28, reframing the blurb as something written for one
+// specific recipient to forward ("worth sending to a parent / a fellow dog
+// owner") rather than as the account's own voice. It is the only Harold
+// prompt or code change in the two weeks before follows-per-10k-reach began
+// a six-week collapse (22 -> 1) starting 10 Aug, while median reach briefly
+// rose over part of the same window — the signature of a caption that still
+// earns a share but gives a non-follower no reason to follow the account
+// doing the sharing. Reverted as a live test of that hypothesis, not a
+// proven cause; watch follows-per-10k-reach over the following weeks once
+// Instagram insights access exists to check it (see checkConversionHealth).
 
 const HASHTAGS = "#goodnews #goodnewsnetwork #positivenews #hope #uplifting";
 
@@ -218,10 +221,6 @@ const BLURB_PROMPT = (title, excerpt) => `You write Instagram captions for the G
 Write the 1–2 sentence blurb that sits under this headline. Rules:
 - Complete sentences only; never trail off with an ellipsis.
 - 120–280 characters total. Lead with the human hook, not the mechanics.
-- Write it as something worth sending to one specific person (a parent, a fellow dog
-  owner, whoever the story is obviously *for*) — not just something worth reading.
-  Earn that through the human specificity of the writing itself; never by tacking on
-  a "tag someone" or "send this to" line — that's clickbait, not shareability.
 - Warm, plain, conversational. No clickbait, no ALL-CAPS words, no exclamation stacking.
 - No emojis, no hashtags, no links.
 - Do not repeat the headline verbatim — add to it.
