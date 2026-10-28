@@ -326,7 +326,7 @@ Update this file's numbers in place. Append the week's finding, the change made,
 
 ---
 
-## 6.5. Facebook cross-post (built 28 Oct 2026, off by default)
+## 6.5. Facebook cross-post (built 28 Oct 2026, LIVE as of 28 Oct 2026)
 
 Stephanie Sharis (GNN CEO) flagged that Facebook posting dropped entirely when Andy's handoff of that
 duty never happened, and asked for the LOE on Harold covering it. Most of the pipeline is already
@@ -337,14 +337,16 @@ photos on referral clicks) says copying the Instagram caption verbatim would thr
 Facebook is actually good for. Wired into `run.js` as a non-blocking cross-post, same discipline as the
 (disabled) Stories cross-post: a Facebook failure never undoes a successful Instagram post.
 
-**It is OFF today and will stay off until `HAROLD_FACEBOOK_ENABLED` is set to `true`** (repo variable,
-same mechanism as `HAROLD_LIVE`), because `IG_ACCESS_TOKEN` is currently an instagram-login (IGAA)
-token, which has zero Page access by Meta's design — not a missing checkbox, a different token flavor
-entirely. Turning this on needs a facebook-login (EAA) token with `pages_manage_posts`, generated via
-the same "API setup with Facebook login" flow used for the Sep 2026 IG token rotation; `publish.js`
-already auto-detects token flavor, so one new token covers both platforms. `scripts/check-facebook-access.js`
-(read-only, posts nothing) confirms exactly this on every run and will report `canPost: true` the moment
-the new token is in place — flip the repo variable once it does, no further code change needed.
+**Turned on the same day**, once `IG_ACCESS_TOKEN` was replaced with a facebook-login (EAA) token
+carrying `pages_manage_posts` (same "API setup with Facebook login" flow as the Sep 2026 IG token
+rotation) — one token now covers both platforms. Getting there needed an extra fix: `/me/accounts`
+(the usual way to discover which Page a token can post to) returned `{"data":[]}` even on a token
+`debug_token` confirmed had `pages_manage_posts` scoped exactly to GNN's Page — twice, across two
+separately-generated tokens, so it wasn't a one-off glitch. Working theory, not fully confirmed: GNN's
+Page is a Business Portfolio asset, and `/me/accounts` only enumerates plain, personally-administered
+Pages. `resolveFacebookPage()` in `publish.js` now falls back to fetching the Page directly by its
+known id when the listing comes back empty, which resolved it immediately. `scripts/check-facebook-access.js`
+verified `canPost: true` live before `HAROLD_FACEBOOK_ENABLED` was switched on.
 
 This covers the stopgap Stephanie asked for (same card on both platforms), not the dedicated
 Facebook-native agent she floated as a possible future step, and not the Facebook video lane (section
