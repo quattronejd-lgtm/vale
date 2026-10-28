@@ -306,6 +306,73 @@ export async function checkTokenHealth() {
 }
 
 /**
+ * Account-level insights over a trailing window. Requires the
+ * instagram_manage_insights permission — NOT currently granted on Harold's
+ * token (flagged since the first spec, never added in the Meta app
+ * dashboard). Calling this today will fail with a clear Graph API
+ * permission error; it exists so checkConversionHealth() has something real
+ * to call the moment that permission is added, instead of nobody writing
+ * this until the gap is noticed again.
+ *
+ * `follower_count` and `reach` are documented, stable IG User insights
+ * metrics (period=day). follower_count is NET change (follows minus
+ * unfollows) — not the gross "follows" figure Meta's own CSV export reports
+ * — the closest signal the public Graph API exposes without that export.
+ */
+export async function getAccountInsights({ metric, days = 14 } = {}) {
+  const token = requireEnv("IG_ACCESS_TOKEN");
+  const base = graphBase(token);
+  const igUser = await igUserId();
+  const until = Math.floor(Date.now() / 1000);
+  const since = until - days * 86_400;
+  const url =
+    `${base}/${igUser}/insights?metric=${encodeURIComponent(metric)}&period=day` +
+    `&since=${since}&until=${until}&access_token=${encodeURIComponent(token)}`;
+  const res = await fetch(url);
+  const json = await res.json();
+  if (!res.ok) {
+    throw new Error(`publish: account insights (${metric}) failed — ${JSON.stringify(json.error || json)}`);
+  }
+  const series = json.data?.[0]?.values || [];
+  return series.map((v) => ({ date: v.end_time, value: v.value }));
+}
+
+/**
+ * Follows-per-10k-reach over two trailing 7-day windows, to catch the exact
+ * failure mode the Oct 2026 audit found: output and even reach can look
+ * healthy while conversion to follows quietly collapses. The audit's own
+ * fix instruction: "alarm on follows per 10k reach and median reach per
+ * post, not on post count." This covers the first half (account-level,
+ * net-follower proxy); a true per-post median-reach check needs per-media
+ * insights calls and is left as documented future work rather than guessed
+ * at here without a live permission to test against.
+ */
+export async function checkConversionHealth() {
+  const [followerSeries, reachSeries] = await Promise.all([
+    getAccountInsights({ metric: "follower_count", days: 14 }),
+    getAccountInsights({ metric: "reach", days: 14 }),
+  ]);
+  const split = (series) => ({
+    older: series.slice(0, Math.floor(series.length / 2)),
+    recent: series.slice(Math.floor(series.length / 2)),
+  });
+  const sum = (arr) => arr.reduce((s, v) => s + v.value, 0);
+  const net = (arr) => (arr.length ? arr[arr.length - 1].value - arr[0].value : 0);
+
+  const f = split(followerSeries);
+  const r = split(reachSeries);
+  const olderRatio = sum(r.older) ? (net(f.older) / sum(r.older)) * 10_000 : null;
+  const recentRatio = sum(r.recent) ? (net(f.recent) / sum(r.recent)) * 10_000 : null;
+
+  return {
+    olderFollowsPer10kReach: olderRatio,
+    recentFollowsPer10kReach: recentRatio,
+    recentNetFollowers: net(f.recent),
+    recentReach: sum(r.recent),
+  };
+}
+
+/**
  * Full publish: upload -> create container -> publish.
  * @returns {Promise<{ mediaId: string, imageUrl: string }>}
  */

@@ -95,6 +95,42 @@ but not proven as *net* growth.
 
 ---
 
+## 0.6. The Oct 2026 external audit — corrections and open items
+
+Quattrone Brands ran a distribution audit across the whole GNN account (not just Harold), landing
+28 Oct 2026, with first-party GA4 and a fresh Meta export through 24 Oct. It confirmed some of this
+file and corrected other parts. Full detail in `INCIDENTS.md`'s new entry; what changes here:
+
+- **The headline finding: follows collapsed while output stayed healthy.** Follows per 10k reach fell
+  22 → 1 over six weeks starting ~10 Aug, median reach fell 3,301 → 1,577 — and Harold's own
+  monitoring (an output floor) would read green through the entire thing. **This file's own integrity
+  check (section 6, Step 1) only watches dark days and posts/day — it has the exact same blind spot.**
+  Fixed in code: `scripts/check-conversion-health.js` + `src/publish.js`'s `checkConversionHealth()`,
+  wired into the daily workflow — but it cannot actually alarm until `instagram_manage_insights` is
+  granted on Harold's token (see section 9; this has been an open gap since September and is now the
+  thing actually blocking a real fix, not just a nice-to-have).
+- **Root-cause hypothesis, not proof: the Aug 5 "shareability" caption rule.** It's the only Harold
+  prompt/code change in the two weeks before the decay started. Reverted as a live test — see
+  `INCIDENTS.md`. Do not treat this as closed; watch conversion over the following weeks once there's
+  a way to measure it, and reopen the search if it doesn't recover.
+- **The topic razor is reconfirmed, not changed.** Health/science ex-breakout: 0.43 follows/1k vs 0.31
+  for animals — matches section 2's numbers exactly. `scoring.js`'s `TOPIC*2` weighting needs no
+  change; this was the audit independently re-deriving what section 0.5 already validated.
+- **Reels were tried on Instagram and stopped, not never run.** 9 in Jan, 9 in Feb, 5 in Mar, none
+  since — and they underperformed images on conversion (5 follows/10k reach vs 8). N3's "no Reels"
+  rule is correct to keep, now on evidence rather than by default.
+- **New, unresolved tension with N3 ("single images only, no carousels").** The audit's correction:
+  carousels convert nearly 2x better than images (14 follows/10k reach vs 8) on the lowest median
+  reach of any format (1,184) — 75 posts all year, called "an untested lever rather than a proven
+  one." This is new information N3 didn't have when it was set. **Not acted on here** — changing a
+  non-negotiable Joe approved is his call, not a unilateral code change, and the format shift is a
+  real pipeline build (multi-image render + carousel container flow), not a parameter tune. Flagged
+  to Joe directly; raise it again in the next weekly loop if he hasn't weighed in.
+- **"Post in the evening for followers" stays dead** — independently reconfirmed by the audit's own
+  look at the data (the whole effect traced to one post). No change to section 5 or section 8.
+
+---
+
 ## 1. Non-negotiables
 
 These are hard rules. Violating one is a failure condition, not a judgment call.
@@ -201,7 +237,8 @@ Caveat, stated honestly: on this sample the SHAPE and SPECIFICITY splits do **no
 6. **No em-dashes in copy Harold generates.**
 
 (Harold's actual copy constitution lives in `harold/src/editorial.js` — see that file's header comment
-for the full, currently-shipping ruleset, including the shareability rule added 27 Jul 2026.)
+for the full, currently-shipping ruleset. A "shareability" rule ran 5 Aug–28 Oct 2026 and was retired
+as the prime suspect for the follow-conversion collapse in section 0.6 — see `INCIDENTS.md`.)
 
 ---
 
@@ -324,3 +361,4 @@ Guardrails against re-deriving findings that already failed:
 - **Zero paid** across the window — boosted reach is 0 on every Facebook row. All of this is organic.
 - **Harold's real monthly cost** is an estimate ($75/mo). Confirm it before it appears in any external deck.
 - **The account-level Follows-vs-per-post-Follows-sum gap (section 0.5) is itself a known gap** as of 12 Sep 2026 — every follows number in sections 1, 2, and 6 above is a per-post-attribution floor, not the true total, for every phase.
+- **`instagram_manage_insights` is still not granted on Harold's token (28 Oct 2026 update: this is no longer just a nice-to-have).** `scripts/check-conversion-health.js` exists and is wired into the daily workflow but cannot alarm without it — it is the single thing standing between Harold and catching the next six-week conversion collapse (section 0.6) in days instead of via an external audit eleven weeks later. Add it in the Meta app dashboard; no code change needed after that.
