@@ -341,6 +341,12 @@ export async function requireFacebookAccess() {
   if (!permsRes.ok) {
     throw new Error(`publish: could not list granted permissions — ${JSON.stringify(permsJson.error || permsJson)}`);
   }
+  // Temporary debug logging (28 Oct 2026): pages_manage_posts was confirmed
+  // granted but /me/accounts came back with no usable Page, so canPost read
+  // false with an empty missingScopes list -- not a permissions problem,
+  // something about how the Page is (or isn't) enumerable from this token.
+  // Logging the raw shape, not any secret, to see which case we're in.
+  console.log(`[facebook-access] /me/accounts raw: ${JSON.stringify(accountsJson)}`);
 
   const page = (accountsJson.data || []).find((p) => p.instagram_business_account?.id) || accountsJson.data?.[0];
   const grantedScopes = (permsJson.data || [])
