@@ -170,6 +170,10 @@ jobs:
         if: steps.guard.outputs.run == 'true'
         run: node scripts/check-conversion-health.js
 
+      - name: Check Facebook access (read-only, posts nothing)
+        if: steps.guard.outputs.run == 'true'
+        run: node scripts/check-facebook-access.js
+
       - name: Install Chromium
         if: steps.guard.outputs.run == 'true'
         run: npx playwright install --with-deps chromium

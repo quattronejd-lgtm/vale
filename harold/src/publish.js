@@ -306,6 +306,61 @@ export async function checkTokenHealth() {
 }
 
 /**
+ * Read-only: does Harold's current token already have permission to post to
+ * the Facebook Page linked to the Instagram account? Answers the one real
+ * unknown before building a Facebook cross-post — changes nothing, posts
+ * nothing. An instagram-login (IGAA) token has no Page access at all, by
+ * design, regardless of scopes; only a facebook-login (EAA) token can carry
+ * `pages_manage_posts`.
+ */
+export async function requireFacebookAccess() {
+  const token = requireEnv("IG_ACCESS_TOKEN");
+  const base = graphBase(token);
+  const flavor = tokenFlavor(token);
+
+  if (flavor !== "facebook-login") {
+    return {
+      flavor,
+      pageId: null,
+      pageName: null,
+      grantedScopes: [],
+      missingScopes: ["pages_manage_posts"],
+      canPost: false,
+    };
+  }
+
+  const [accountsRes, permsRes] = await Promise.all([
+    fetch(`${base}/me/accounts?fields=name,instagram_business_account&access_token=${encodeURIComponent(token)}`),
+    fetch(`${base}/me/permissions?access_token=${encodeURIComponent(token)}`),
+  ]);
+  const accountsJson = await accountsRes.json();
+  const permsJson = await permsRes.json();
+  if (!accountsRes.ok) {
+    throw new Error(`publish: could not list Pages — ${JSON.stringify(accountsJson.error || accountsJson)}`);
+  }
+  if (!permsRes.ok) {
+    throw new Error(`publish: could not list granted permissions — ${JSON.stringify(permsJson.error || permsJson)}`);
+  }
+
+  const page = (accountsJson.data || []).find((p) => p.instagram_business_account?.id) || accountsJson.data?.[0];
+  const grantedScopes = (permsJson.data || [])
+    .filter((p) => p.status === "granted")
+    .map((p) => p.permission);
+
+  const REQUIRED = ["pages_manage_posts"];
+  const missingScopes = REQUIRED.filter((s) => !grantedScopes.includes(s));
+
+  return {
+    flavor,
+    pageId: page?.id || null,
+    pageName: page?.name || null,
+    grantedScopes,
+    missingScopes,
+    canPost: missingScopes.length === 0 && !!page?.id,
+  };
+}
+
+/**
  * Account-level insights over a trailing window. Requires the
  * instagram_manage_insights permission — NOT currently granted on Harold's
  * token (flagged since the first spec, never added in the Meta app
