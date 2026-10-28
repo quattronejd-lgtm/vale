@@ -313,6 +313,42 @@ export async function checkTokenHealth() {
  * design, regardless of scopes; only a facebook-login (EAA) token can carry
  * `pages_manage_posts`.
  */
+// Good News Network's Facebook Page ID -- not a secret, confirmed
+// independently via the Meta Access Token Debugger's granular-scopes
+// breakdown on 28 Oct 2026 (twice, across two separately-generated tokens).
+// /me/accounts returns {"data":[]} for this account even on a token that
+// debug_token itself confirms carries pages_manage_posts scoped exactly to
+// this Page -- the working theory is that GNN's Page is a Business
+// Portfolio asset, and /me/accounts only enumerates plain, personally-
+// administered Pages, not Business-managed ones, regardless of scope.
+// Fetching the Page directly by id sidesteps that enumeration gap.
+const GNN_PAGE_ID = "35392719264";
+
+async function resolveFacebookPage(token, base) {
+  const accountsRes = await fetch(
+    `${base}/me/accounts?fields=name,instagram_business_account&access_token=${encodeURIComponent(token)}`
+  );
+  const accountsJson = await accountsRes.json();
+  if (!accountsRes.ok) {
+    throw new Error(`publish: could not list Pages — ${JSON.stringify(accountsJson.error || accountsJson)}`);
+  }
+  const listed = (accountsJson.data || []).find((p) => p.instagram_business_account?.id) || accountsJson.data?.[0];
+  if (listed) return listed;
+
+  // /me/accounts came back empty -- try the known Page id directly rather
+  // than failing. If this ALSO fails, the problem is real (token truly
+  // lacks access), not just an enumeration gap.
+  const directRes = await fetch(
+    `${base}/${GNN_PAGE_ID}?fields=name,instagram_business_account&access_token=${encodeURIComponent(token)}`
+  );
+  const directJson = await directRes.json();
+  console.log(
+    `[facebook-access] /me/accounts was empty; direct fetch of known Page id ${GNN_PAGE_ID}: ` +
+      `${directRes.ok ? "OK" : "FAILED"} — ${JSON.stringify(directJson)}`
+  );
+  return directRes.ok ? directJson : null;
+}
+
 export async function requireFacebookAccess() {
   const token = requireEnv("IG_ACCESS_TOKEN");
   const base = graphBase(token);
@@ -329,26 +365,15 @@ export async function requireFacebookAccess() {
     };
   }
 
-  const [accountsRes, permsRes] = await Promise.all([
-    fetch(`${base}/me/accounts?fields=name,instagram_business_account&access_token=${encodeURIComponent(token)}`),
+  const [page, permsRes] = await Promise.all([
+    resolveFacebookPage(token, base),
     fetch(`${base}/me/permissions?access_token=${encodeURIComponent(token)}`),
   ]);
-  const accountsJson = await accountsRes.json();
   const permsJson = await permsRes.json();
-  if (!accountsRes.ok) {
-    throw new Error(`publish: could not list Pages — ${JSON.stringify(accountsJson.error || accountsJson)}`);
-  }
   if (!permsRes.ok) {
     throw new Error(`publish: could not list granted permissions — ${JSON.stringify(permsJson.error || permsJson)}`);
   }
-  // Temporary debug logging (28 Oct 2026): pages_manage_posts was confirmed
-  // granted but /me/accounts came back with no usable Page, so canPost read
-  // false with an empty missingScopes list -- not a permissions problem,
-  // something about how the Page is (or isn't) enumerable from this token.
-  // Logging the raw shape, not any secret, to see which case we're in.
-  console.log(`[facebook-access] /me/accounts raw: ${JSON.stringify(accountsJson)}`);
 
-  const page = (accountsJson.data || []).find((p) => p.instagram_business_account?.id) || accountsJson.data?.[0];
   const grantedScopes = (permsJson.data || [])
     .filter((p) => p.status === "granted")
     .map((p) => p.permission);
@@ -450,14 +475,9 @@ async function facebookPageId() {
     );
   }
   const base = graphBase(token);
-  const res = await fetch(`${base}/me/accounts?fields=name,instagram_business_account&access_token=${encodeURIComponent(token)}`);
-  const json = await res.json();
-  if (!res.ok) {
-    throw new Error(`publish: could not list Pages for Facebook cross-post — ${JSON.stringify(json.error || json)}`);
-  }
-  const page = (json.data || []).find((p) => p.instagram_business_account?.id) || json.data?.[0];
+  const page = await resolveFacebookPage(token, base);
   if (!page?.id) {
-    throw new Error("publish: Facebook cross-post found no Page on this token.");
+    throw new Error("publish: Facebook cross-post found no Page on this token (checked /me/accounts and the known GNN Page id directly).");
   }
   return page.id;
 }
