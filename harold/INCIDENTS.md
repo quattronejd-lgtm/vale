@@ -125,6 +125,59 @@ whole map) before assuming it's unknowable.
 
 ---
 
+## 2026-10-28T02:08:52Z → 2026-10-29T18:41Z — Self-inflicted full dark period, ~40.5 hours (the worst outage in this project's history)
+
+**Impact:** zero live posts for ~40.5 hours — confirmed via `data/posted.json`'s last entry before the
+gap (2026-10-28T02:08:52Z) and the live catch-up run that broke it (2026-10-29T18:42:13Z). Every
+scheduled run in between that reached the live publish step failed outright (`conclusion: failure`,
+visible in Actions run history, not hidden the way the Sep 2026 staleness-cap incident was) — runs
+881/878/876/874 among them. The alternating success/failure pattern in that history is the DST-twin
+guard's *other* twin correctly skipping its non-matching slot each time, not evidence the posting
+pipeline was intermittently healthy.
+
+**Root cause:** caused directly by rotating `IG_ACCESS_TOKEN` to a facebook-login (EAA) token on 28 Oct
+2026 to add Facebook cross-posting (see §6.5 above). `igUserId()` in `publish.js` — the function that
+resolves which Instagram account to post to, called on **every** live run regardless of whether the
+Facebook feature is even enabled — has a facebook-login branch that calls `/me/accounts` to find the
+Page/IG linkage. That endpoint returns `{"data":[]}` for this account even when `debug_token` confirms
+the token genuinely carries `pages_manage_posts` scoped exactly to GNN's Page (first noticed and worked
+around for the *new, optional* Facebook functions — `requireFacebookAccess()`, then-named
+`facebookPageId()` — but `igUserId()` predates that work and was never touched, so the one function
+every single live post actually depends on kept failing with no fallback). Working theory for why
+`/me/accounts` behaves this way at all: GNN's Page is a Business Portfolio asset, and `/me/accounts`
+only enumerates plain, personally-administered Pages.
+
+**Why it went unnoticed for so long:** it wasn't silent — every failing run shows `conclusion: failure`
+in Actions, which is more visible than several earlier incidents in this log. It went unnoticed because
+nobody (including the agent that caused it) checked the live run history after enabling the feature
+until directly asked "is it working" roughly 21 hours in. The token-health and Facebook-access
+preflight checks both passed on every failing run — they confirm the token is valid and scoped, not
+that the actual posting call succeeds, so they gave false reassurance. This is the same category of
+gap HAROLD.md §0.6 already flagged for conversion monitoring: a check that validates the wrong layer
+reads green while the thing that matters is broken.
+
+**Fix:** routed `igUserId()`'s facebook-login branch through the same `resolveFacebookPage()` fallback
+(direct Page-id fetch when `/me/accounts` comes back empty) already built for the Facebook-specific
+functions. Verified via a live `workflow_dispatch` catch-up run immediately after the fix: Instagram
+posted successfully (media `18139619686626932`). A second, separate bug surfaced in the same run —
+Facebook's own cross-post failed with a misleading "publish_actions deprecated" error, actually caused
+by posting with the user token instead of the Page's own access token — fixed immediately after in the
+same session; see the next entry once confirmed live.
+
+**Follow-up shipped:** none yet beyond the direct fix. The real follow-up is procedural, not code: a
+credential-flavor change (instagram-login → facebook-login) is exactly the kind of change that should
+have triggered a full live catch-up run and a run-history check immediately after shipping, the same
+discipline already applied to every prior token rotation in this log — that discipline lapsed here
+specifically because the change was framed as "adding a feature" rather than "changing a credential,"
+and the two were in fact the same commit.
+
+**Prediction for next time:** any future change to `IG_ACCESS_TOKEN`'s flavor or scopes needs an
+immediate live verification run and a run-history check before being considered done, independent of
+whether the change was motivated by a new feature or a routine rotation. A passing preflight check
+(token-health, Facebook-access) is necessary but not sufficient evidence that posting itself works.
+
+---
+
 ## Template for the next entry
 
 ```

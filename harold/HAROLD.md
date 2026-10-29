@@ -147,6 +147,11 @@ These are hard rules. Violating one is a failure condition, not a judgment call.
 Dark days observed in the last 28 (as of the 9 Sep spec): **27 Aug, 28 Aug, 31 Aug.** Full-year dark
 days for Harold's own tenure: **7/23 and 7/24** (Netlify token failure — see `INCIDENTS.md`) plus 4
 more scattered days, 6 total in 59 days. Every one costs roughly a day's reach with no recovering it.
+**Add 10/28 02:08 UTC → 10/29 18:41 UTC (~40.5 hours, self-inflicted by the Facebook token rotation —
+see `INCIDENTS.md`'s latest entry): the single worst outage in this project's history, worse than
+every prior incident combined. Caused by changing `IG_ACCESS_TOKEN`'s flavor without immediately
+running a live verification + run-history check afterward — see that entry's prediction before any
+future credential change.**
 
 ### Why 4/day and not 3, and not 6
 
