@@ -324,9 +324,24 @@ export async function checkTokenHealth() {
 // Fetching the Page directly by id sidesteps that enumeration gap.
 const GNN_PAGE_ID = "35392719264";
 
+// Includes `access_token` -- a Page's OWN access token, distinct from the
+// user token used to look it up. Posting to a Page's /photos (or /feed)
+// endpoint needs this Page token; using the user token directly there is
+// what produced a misleading "publish_actions deprecated" error (29 Oct
+// 2026) even though pages_manage_posts was genuinely granted -- a known
+// Graph API trap where several real failure modes surface as that one
+// stock message. Never log this field raw; redact before printing.
+const PAGE_FIELDS = "name,instagram_business_account,access_token";
+
+function redactPageToken(page) {
+  if (!page) return page;
+  const { access_token, ...rest } = page;
+  return access_token ? { ...rest, access_token: "***" } : page;
+}
+
 async function resolveFacebookPage(token, base) {
   const accountsRes = await fetch(
-    `${base}/me/accounts?fields=name,instagram_business_account&access_token=${encodeURIComponent(token)}`
+    `${base}/me/accounts?fields=${PAGE_FIELDS}&access_token=${encodeURIComponent(token)}`
   );
   const accountsJson = await accountsRes.json();
   if (!accountsRes.ok) {
@@ -339,12 +354,12 @@ async function resolveFacebookPage(token, base) {
   // than failing. If this ALSO fails, the problem is real (token truly
   // lacks access), not just an enumeration gap.
   const directRes = await fetch(
-    `${base}/${GNN_PAGE_ID}?fields=name,instagram_business_account&access_token=${encodeURIComponent(token)}`
+    `${base}/${GNN_PAGE_ID}?fields=${PAGE_FIELDS}&access_token=${encodeURIComponent(token)}`
   );
   const directJson = await directRes.json();
   console.log(
     `[publish] /me/accounts was empty; direct fetch of known Page id ${GNN_PAGE_ID}: ` +
-      `${directRes.ok ? "OK" : "FAILED"} — ${JSON.stringify(directJson)}`
+      `${directRes.ok ? "OK" : "FAILED"} — ${JSON.stringify(redactPageToken(directJson))}`
   );
   return directRes.ok ? directJson : null;
 }
@@ -464,7 +479,8 @@ export async function checkConversionHealth() {
  * access; an instagram-login (IGAA) token has none, by Meta's own design,
  * regardless of granted scopes -- see requireFacebookAccess().
  */
-async function facebookPageId() {
+/** Resolves the Page for posting -- returns {id, accessToken}, not just the id. */
+async function facebookPostingPage() {
   const token = requireEnv("IG_ACCESS_TOKEN");
   if (tokenFlavor(token) !== "facebook-login") {
     throw new Error(
@@ -479,7 +495,14 @@ async function facebookPageId() {
   if (!page?.id) {
     throw new Error("publish: Facebook cross-post found no Page on this token (checked /me/accounts and the known GNN Page id directly).");
   }
-  return page.id;
+  if (!page.access_token) {
+    throw new Error(
+      "publish: resolved the Page but Meta returned no Page access_token for it. Posting to a Page's " +
+        "/photos endpoint needs the Page's OWN token, not the user token -- re-check that pages_manage_posts " +
+        "is actually granted (not just pages_show_list) on IG_ACCESS_TOKEN."
+    );
+  }
+  return { id: page.id, accessToken: page.access_token };
 }
 
 /**
@@ -493,16 +516,16 @@ async function facebookPageId() {
  * @returns {Promise<{ postId: string, pageId: string }>}
  */
 export async function publishToFacebook({ imageUrl, caption }) {
-  const token = requireEnv("IG_ACCESS_TOKEN");
-  const pageId = await facebookPageId();
+  const userToken = requireEnv("IG_ACCESS_TOKEN"); // only used to resolve graphBase() below
+  const { id: pageId, accessToken: pageToken } = await facebookPostingPage();
 
   const body = new URLSearchParams({
     url: imageUrl,
     caption: caption || "",
     published: "true",
-    access_token: token,
+    access_token: pageToken, // the Page's OWN token -- the user token is rejected here (see facebookPostingPage)
   });
-  const res = await fetch(`${graphBase(token)}/${pageId}/photos`, { method: "POST", body });
+  const res = await fetch(`${graphBase(userToken)}/${pageId}/photos`, { method: "POST", body });
   const json = await res.json();
   if (!res.ok || !json.id) {
     throw new Error(`publish: Facebook photo post failed — ${JSON.stringify(json.error || json)}`);
