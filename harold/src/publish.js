@@ -78,19 +78,19 @@ async function igUserId() {
     }
     cachedIgUserId = String(json.user_id || json.id);
   } else {
-    const res = await fetch(
-      `${base}/me/accounts?fields=name,instagram_business_account&access_token=${encodeURIComponent(token)}`
-    );
-    const json = await res.json();
-    if (!res.ok) {
-      throw new Error(`publish: could not list Pages for Facebook-login token — ${JSON.stringify(json.error || json)}`);
-    }
-    const page = (json.data || []).find((p) => p.instagram_business_account?.id);
-    if (!page) {
+    // Routes through the same fallback as the Facebook cross-post: /me/accounts
+    // has proven unreliable for this account (intermittently returns {"data":[]}
+    // even when the token is valid and correctly scoped -- see HAROLD.md §6.5 and
+    // INCIDENTS.md), and this path runs on EVERY live post now that IG_ACCESS_TOKEN
+    // is a facebook-login token, not just the optional Facebook cross-post. Missing
+    // this fallback here silently dropped roughly half of Harold's posting slots
+    // on 28-29 Oct 2026 before it was caught.
+    const page = await resolveFacebookPage(token, base);
+    if (!page?.instagram_business_account?.id) {
       throw new Error(
-        "publish: no linked instagram_business_account found on this Facebook token's Pages. " +
-          "Either use an Instagram-business-login token (starts with IGAA, from the use case's " +
-          "Generate access tokens section) or a Facebook token with pages_show_list + a Page linked to the IG account."
+        "publish: no linked instagram_business_account found on this Facebook token's Pages (checked " +
+          "/me/accounts and the known GNN Page id directly). Either use an Instagram-business-login " +
+          "token (starts with IGAA) or a Facebook token with pages_show_list + a Page linked to the IG account."
       );
     }
     console.log(`[publish] using IG account linked to Page "${page.name}"`);
@@ -343,7 +343,7 @@ async function resolveFacebookPage(token, base) {
   );
   const directJson = await directRes.json();
   console.log(
-    `[facebook-access] /me/accounts was empty; direct fetch of known Page id ${GNN_PAGE_ID}: ` +
+    `[publish] /me/accounts was empty; direct fetch of known Page id ${GNN_PAGE_ID}: ` +
       `${directRes.ok ? "OK" : "FAILED"} — ${JSON.stringify(directJson)}`
   );
   return directRes.ok ? directJson : null;
