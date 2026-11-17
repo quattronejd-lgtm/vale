@@ -5,7 +5,7 @@
 //   node src/run.js --dry-run  # same, explicit
 //   node src/run.js --live     # actually publish to Instagram
 import { fetchArticles, markPosted, DEFAULT_LEDGER } from "./fetch.js";
-import { pickArticle, pickOrangeWords, writeSpotlightHeadline, writeCaption, writeFacebookCaption } from "./editorial.js";
+import { pickArticle, pickOrangeWords, writeCaption, writeFacebookCaption } from "./editorial.js";
 import { scoreArticle } from "./scoring.js";
 import { vetHero } from "./hero.js";
 import { render, SPOTLIGHT_TEMPLATE } from "./render.js";
@@ -92,22 +92,25 @@ export async function main(argv = process.argv.slice(2)) {
   }
 
   // 2) editorial — Animal Spotlight template for animal/pet-topic picks
-  // (approved by Joe 12 Sep 2026): short punchy on-image phrase instead of
-  // the full headline, on the dedicated layout. The real article title
-  // still drives the Instagram caption below the image either way — this
-  // only changes what's burned into the picture.
+  // (layout approved by Joe 12 Sep 2026). REVERSED 17 Nov 2026: the
+  // template originally burned a short 2-4 word punchy phrase onto the
+  // image instead of the real headline (writeSpotlightHeadline()) -- Joe's
+  // own 2-year Meta dashboard, sorted by Follows, shows every real
+  // follow-getter uses the full, specific headline as the overlay (e.g.
+  // "Antiviral Chewing Gum Cuts Risk of Certain Head and Neck Cancers to
+  // Almost Zero in New Study" -- 766 follows). A same-day comparison nails
+  // it down further: the 10/22 Animal Spotlight post ("Island Comes
+  // Alive") got ~12 likes and 0 follows while a same-day standard-card
+  // post got 3,532 likes and 146 follows -- the short-phrase convention,
+  // not the visual template (badge/tag/layout), looks like the problem.
+  // Spotlight now gets the identical full-headline treatment as the
+  // standard card; only the visual template differs. writeSpotlightHeadline()
+  // stays in editorial.js, unused, in case this needs revisiting.
   const isAnimalSpotlight = scoreArticle(article).topicLabel === "animals & pets";
-  let headline, orangeWords, template;
-  if (isAnimalSpotlight) {
-    const fullHeadlineOrange = await pickOrangeWords(article.title.toUpperCase());
-    headline = await writeSpotlightHeadline({ ...article, orangeWords: fullHeadlineOrange });
-    orangeWords = await pickOrangeWords(headline);
-    template = SPOTLIGHT_TEMPLATE;
-    console.log(`[run] Animal Spotlight template selected`);
-  } else {
-    headline = (article.title || "").toUpperCase();
-    orangeWords = await pickOrangeWords(headline);
-  }
+  const headline = (article.title || "").toUpperCase();
+  const orangeWords = await pickOrangeWords(headline);
+  const template = isAnimalSpotlight ? SPOTLIGHT_TEMPLATE : undefined;
+  if (isAnimalSpotlight) console.log(`[run] Animal Spotlight template selected (full headline)`);
   // Always the real article title + blurb, regardless of template -- one
   // call either way (editorialize() is NOT used here specifically to avoid
   // calling writeCaption twice).

@@ -54,21 +54,27 @@
   white-space: nowrap;
 }
 
-/* Headline moves from bottom-anchored to upper/center-weighted -- short
-   phrases now (2-4 words, see editorial.js writeSpotlightHeadline), so the
-   block sits higher, with its TOP intentionally underlapping the tag above
-   (z-index 1 < the tag's 2) for the layered-sticker composition Joe asked
-   for, instead of the two sitting stacked with a gap between them. */
+/* REVISED 17 Nov 2026: this used to sit higher with its TOP intentionally
+   underlapping the tag above, a layered-sticker look that only worked
+   because the on-image text was a short 2-4 word phrase (see run.js --
+   that convention is retired; Spotlight now gets the same full headline
+   as the standard card). A full headline fills this box from the top
+   down, so the old top:300px put the tag directly on top of line one,
+   illegible -- confirmed by actually rendering a sample before shipping
+   this change, not assumed. Top moved below the tag's footprint (tag:
+   top 330px + ~64px pill height + shadow, clear by ~440px); height
+   reduced by the same amount so the box's BOTTOM edge -- and so the
+   card's bottom margin -- is unchanged. */
 .spotlight-headline-wrap {
-  top: 300px;
+  top: 440px;
   /* Explicit height, not bottom+auto -- an absolutely positioned box with
      top set and bottom:auto does NOT reliably shrink-to-fit its content
      across engines; measured it actually undersizing below its own
      content's height, which made fitHeadlineInPage's overflow check
      trigger far earlier than intended. An explicit height is a stable,
      known ceiling to fit type into instead. */
-  height: 800px;
-  max-height: 800px; /* base .headline-wrap sets max-height:720px -- override it too, or it wins over the explicit height above */
+  height: 660px;
+  max-height: 660px; /* base .headline-wrap sets max-height:720px -- override it too, or it wins over the explicit height above */
   left: var(--safe-left);
   right: var(--safe-right);
   z-index: 1;

@@ -245,6 +245,21 @@ Caveat, stated honestly: on this sample the SHAPE and SPECIFICITY splits do **no
 for the full, currently-shipping ruleset. A "shareability" rule ran 5 Aug–28 Oct 2026 and was retired
 as the prime suspect for the follow-conversion collapse in section 0.6 — see `INCIDENTS.md`.)
 
+**Rule 1 applies to the Animal Spotlight template too, as of 17 Nov 2026 — reversed from how it
+shipped.** From 12 Sep to 17 Nov 2026, Animal Spotlight burned a short 2-4 word punchy phrase onto the
+image instead of the real headline (`writeSpotlightHeadline()` in `editorial.js`, now unused but kept
+for reference). Joe's own 2-year Meta dashboard, sorted by Follows, shows every real follow-getter uses
+the full, specific headline as the overlay — none use a short generic phrase. A same-day comparison
+nailed it down further: the Animal Spotlight post on 10/22 ("Island Comes Alive") got ~12 likes and 0
+follows; a standard-card post the same day got 3,532 likes and 146 follows. `run.js` now gives Spotlight
+the identical full-headline treatment as the standard card — only the visual template (badge, tag,
+layout) still differs. This also moved `template/spotlight-card.css`'s headline box down (was `top:
+300px`, intentionally underlapping the tag for a short phrase; now `top: 440px`, clear of it) — a full
+headline filling the box from the top collided with the tag otherwise, confirmed by actually rendering
+a sample before shipping, not assumed. The tag no longer visually overlaps the text the way the
+original "layered sticker" design intended; that trade (legible over decorative) wasn't run past Joe
+before shipping given the clear illegibility otherwise — worth a look if he wants a different treatment.
+
 ---
 
 ## 5. Timing
