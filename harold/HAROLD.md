@@ -151,7 +151,10 @@ more scattered days, 6 total in 59 days. Every one costs roughly a day's reach w
 see `INCIDENTS.md`'s latest entry): the single worst outage in this project's history, worse than
 every prior incident combined. Caused by changing `IG_ACCESS_TOKEN`'s flavor without immediately
 running a live verification + run-history check afterward — see that entry's prediction before any
-future credential change.**
+future credential change.** **Add 11/16 00:56 UTC → 11/19 16:33 UTC (~3 days, GitHub's scheduler
+degrading past the staleness cap for the third time — see `INCIDENTS.md`'s latest entry): the cap is
+now at 480m with only 23m of margin below the known catastrophic case. The next recurrence needs the
+actual fix (an external `repository_dispatch` backstop), not a fourth cap increase.**
 
 ### Why 4/day and not 3, and not 6
 

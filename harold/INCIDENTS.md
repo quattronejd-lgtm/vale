@@ -178,6 +178,46 @@ whether the change was motivated by a new feature or a routine rotation. A passi
 
 ---
 
+## 2026-11-16T00:55:39Z → 2026-11-19T16:33Z — Staleness cap too tight again, third recurrence, ~3-day outage
+
+**Impact:** ~3 days fully dark (last live post before the gap: 2026-11-16T00:55:39Z). Every scheduled firing
+in that window read `conclusion: success` in Actions — the DST-twin guard was working exactly as designed,
+which was the problem: it correctly identified every firing as too late to be the real slot and skipped it,
+with no louder signal than a log line. Joe caught it by noticing no new posts on Instagram, not from
+anything in GitHub.
+
+**Root cause:** GitHub's own Actions scheduler degraded again. Observed delays on real (non-twin) firings
+during the outage: 321m, 426m, 427m, 445m — all past the 300m `MAX_STALE_MINUTES` cap set in the 2026-09-17
+incident below. This is the third time this exact failure mode has occurred, each time because GitHub's
+scheduler delay crept past whatever cap was set to catch the previous degradation: 70m (original) → 150m
+(too tight, Jul incident) → 300m (too tight, Sep incident) → now. The delay is trending up across incidents,
+not holding steady.
+
+**Why it went unnoticed for ~3 days:** same failure mode as 09-17, not a new gap — a skip and a dark day both
+read as `conclusion: success`, and the token-health and Facebook-access preflight checks (which do run before
+the guard would matter) only confirm credentials are valid, not that a post ever happened. Nothing in this
+pipeline alerts on "N scheduled runs in a row all skipped."
+
+**Fix:** raised `MAX_STALE_MINUTES` 300 → 480. Verified by simulation before shipping (not assumed): covers
+the worst delay actually observed (445m) with 35m of margin, while staying 23m below the original 503m/8h23m
+catastrophic case from the first incident, which still correctly skips. Triggered an immediate live
+`workflow_dispatch` catch-up (bypasses the cron-matching guard entirely) rather than waiting for the next
+scheduled slot — confirmed live: ledger committed at 2026-11-19T16:33:50Z.
+
+**Follow-up shipped:** none beyond the cap raise. The 23-minute margin between "normal now" and "the
+catastrophic case" is real but thin, and shrinking with each recurrence — raising the number again next time
+is no longer a sound long-term plan on its own.
+
+**Prediction for next time:** this will very likely recur as GitHub's scheduler continues to degrade, and
+raising the cap a fourth time will have even less room before colliding with the catastrophic-case ceiling.
+The durable fix is the `repository_dispatch` backstop already scaffolded in `harold-daily.yml`'s own comments
+since the original incident — an independent-clock external trigger that doesn't depend on GitHub Actions'
+`schedule` event at all — which has never actually been wired to a real external cron service. A second,
+cheaper mitigation worth adding regardless: a check that alerts if N consecutive scheduled runs all skip,
+so a staleness-cap mismatch is caught in hours, not days, the next time the cap is wrong in either direction.
+
+---
+
 ## Template for the next entry
 
 ```
