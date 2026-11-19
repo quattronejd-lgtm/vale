@@ -112,7 +112,21 @@ jobs:
           # slow" and "dark day" -- raised to 300m (still well below the 503m/
           # 8h23m catastrophic case above) to buy headroom against further
           # scheduler degradation without reintroducing the 2:30am bug.
-          MAX_STALE_MINUTES=300
+          #
+          # RAISED AGAIN 2026-11-19: same failure, third time. Delays observed
+          # over 11/16-11/19 2026: 321m, 426m, 427m, 445m -- all past the 300m
+          # cap, so EVERY firing in that window was correctly-but-uselessly
+          # rejected, producing a ~3-day real outage (last live post
+          # 2026-11-16T00:55:39Z) that again showed "success" the whole time.
+          # Raised to 480m -- covers the worst delay seen (445m) with 35m to
+          # spare, while staying 23m below the original 503m catastrophic case,
+          # which still correctly skips (verified by simulation before
+          # shipping, same as the 09-17 fix). That margin is uncomfortably
+          # tight and getting tighter each time this recurs -- see
+          # INCIDENTS.md: the real fix is the repository_dispatch backstop
+          # finally getting wired to an actual external cron service, not
+          # another cap increase next time GitHub's scheduler degrades further.
+          MAX_STALE_MINUTES=480
           OFFSET="$(TZ=America/Chicago date +%z)"   # -0500 (CDT) or -0600 (CST)
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "run=true" >> "$GITHUB_OUTPUT"
