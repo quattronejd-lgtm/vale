@@ -20,6 +20,10 @@ on:
     - cron: "7 21 * * *"   # 3pm CST / 4pm CDT (guard skips)
     - cron: "7 23 * * *"   # 6pm CDT
     - cron: "7 0 * * *"    # 6pm CST / 7pm CDT (guard skips)
+    # Make-up slot, 10:37am Central: posts one extra ONLY if yesterday ended
+    # with fewer than 4 posts (checked in run.js via HAROLD_MAKEUP).
+    - cron: "37 15 * * *"  # 10:37am CDT
+    - cron: "37 16 * * *"  # 10:37am CST / 11:37am CDT (guard skips)
   # Backstop trigger: an external cron service (outside GitHub Actions'
   # scheduler entirely) can POST to the GitHub API to fire this event at each
   # slot. See README "Scheduling" section for exact setup. Because the
@@ -36,6 +40,10 @@ on:
           - dry-run
           - live
         default: dry-run
+      makeup:
+        description: "Run as the make-up slot (posts only if yesterday had < 4 posts)"
+        type: boolean
+        default: false
 
 concurrency:
   group: harold-daily
@@ -144,7 +152,12 @@ jobs:
               "7 21 * * *") EXPECT="-0600" ;;  # 3pm CST
               "7 23 * * *") EXPECT="-0500" ;;  # 6pm CDT
               "7 0 * * *")  EXPECT="-0600" ;;  # 6pm CST
+              "37 15 * * *") EXPECT="-0500" ;; # 10:37am CDT make-up
+              "37 16 * * *") EXPECT="-0600" ;; # 10:37am CST make-up
               *) EXPECT="" ;;
+            esac
+            case "$SCHEDULE" in
+              "37 15 * * *"|"37 16 * * *") echo "makeup=true" >> "$GITHUB_OUTPUT" ;;
             esac
             if [ -z "$EXPECT" ] || [ "$OFFSET" != "$EXPECT" ]; then
               echo "run=false" >> "$GITHUB_OUTPUT"
@@ -219,6 +232,8 @@ jobs:
 
       - name: Run Harold (${{ steps.mode.outputs.mode }})
         if: steps.guard.outputs.run == 'true'
+        env:
+          HAROLD_MAKEUP: ${{ steps.guard.outputs.makeup == 'true' || inputs.makeup == true }}
         run: |
           if [ "${{ steps.mode.outputs.mode }}" = "live" ]; then
             node src/run.js --live

@@ -139,6 +139,7 @@ These are hard rules. Violating one is a failure condition, not a judgment call.
 |---|------|-----------|
 | N1 | **Never go dark.** A calendar day with zero posts is a P0 incident. | 0 dark days |
 | N2 | **Floor of 4 posts/day, 7 days/week.** Weekends included. | ≥ 4/day |
+| N2a | **Make-up post.** If a day ends with fewer than 4 posts, the next day adds one extra post at 10:37am Central, between the 9am and 12pm posts. One make-up per day max. Set by Joe 25 Nov 2026. | ≤ 1 make-up/day |
 | N3 | **Single images only.** No carousels, no Reels. | 100% single image |
 | N4 | **Post at natural, scattered minutes.** Never a fixed `:01`. | no clock fingerprint |
 | N5 | **Never re-post a story already published to the same channel.** | 0 duplicates |

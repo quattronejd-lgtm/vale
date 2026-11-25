@@ -57,9 +57,38 @@ async function minutesSinceLastPost(ledgerPath) {
   return (Date.now() - new Date(last.postedAt).getTime()) / 60_000;
 }
 
+const POSTS_PER_DAY = 4;
+
+const chicagoDate = (d) =>
+  new Intl.DateTimeFormat("en-CA", { timeZone: "America/Chicago" }).format(d);
+
+/** How many ledger posts landed on yesterday's America/Chicago calendar date. */
+async function postsYesterday(ledgerPath, now = new Date()) {
+  let ledger;
+  try {
+    ledger = JSON.parse(await readFile(ledgerPath, "utf8"));
+  } catch {
+    return 0;
+  }
+  const yesterday = chicagoDate(new Date(now.getTime() - 24 * 60 * 60_000));
+  return (ledger.posted || []).filter((p) => p.postedAt && chicagoDate(new Date(p.postedAt)) === yesterday).length;
+}
+
 export async function main(argv = process.argv.slice(2)) {
   const { dryRun } = parseArgs(argv);
   console.log(`[run] mode: ${dryRun ? "DRY-RUN (no posting)" : "LIVE"}`);
+
+  // Make-up rule (Joe, 25 Nov 2026): if yesterday ended with fewer than the
+  // 4 scheduled posts, the 10:37am make-up slot adds one extra post between
+  // the 9am and 12pm posts. Otherwise the make-up slot does nothing.
+  if ((process.env.HAROLD_MAKEUP || "").trim().toLowerCase() === "true") {
+    const count = await postsYesterday(DEFAULT_LEDGER);
+    if (count >= POSTS_PER_DAY) {
+      console.log(`[run] make-up slot: yesterday had ${count} posts (>= ${POSTS_PER_DAY}) — nothing to make up.`);
+      return { status: "makeup-not-needed", count };
+    }
+    console.log(`[run] make-up slot: yesterday had only ${count}/${POSTS_PER_DAY} posts — posting a make-up.`);
+  }
 
   // Cooldown guard (live only): if something posted very recently, this is
   // almost certainly an overlapping trigger for the slot already covered
